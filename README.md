@@ -17,9 +17,19 @@ The main challenge is making our program support both 9x9 and 16x16 sudoku, and 
 Another challenge is preventing race condition from happening, and keep shared memory up to date all the time - if the shared memory doesn't have the latest sudoku, some threads may work on outdated sudoku, leading to incorrect result.  
 
 ## RESOURCES
+Our program will be utilizing the muticores on the GHC machines. Since our goal of this project is to come up with a good parallelism scheme, we will be writing our own naive Sudoku algorithm and parallelising it to get desired speedups. We would also need to find sample sudoku puzzles online as well as answers to test our program. 
 
 ## GOALS AND DELIVERABLES
 
 ## PLATFORM CHOICE
 
 ## SCHEDULE
+| Date | Plan |
+| --------- | ----------- |
+| 3/21 - 3/23 | Finish project proposal |
+| 3/24 - 4/8 | Finish basic algorithm for 9x9 Sudoku |
+| 4/8 - 4/11 | Finish milestone report |
+| 4/11 - 4/15 | Finish algorithm for 16x16 Sudoku | 
+| 4/15 - 4/27  | Parallel implementation and testing | 
+| 4/27 - 4/29 | Finish final report |
+| 4/29 - 5/5 | Prepare for poster session |
