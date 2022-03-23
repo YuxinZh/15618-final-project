@@ -1,5 +1,6 @@
 # ParaSudoku
 15-618 Parallel Computer Architecture and Programming Final Project
+
 Yuxin Zhang, Alex Luo
 
 ## SUMMARY
