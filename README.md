@@ -20,6 +20,29 @@ Another challenge is preventing race condition from happening, and keep shared m
 Our program will be utilizing the muticores on the GHC machines. Since our goal of this project is to come up with a good parallelism scheme, we will be writing our own naive Sudoku algorithm and parallelising it to get desired speedups. We would also need to find sample sudoku puzzles online as well as answers to test our program. 
 
 ## GOALS AND DELIVERABLES
+Capable of solving Sudoku with different sizes and different difficulty levels.
+
+Achieve close to Nx speedup with N cores given a large enough Sudoku puzzle.
+
+Display both the puzzle and solution in an easily readable format.
+
+HOPE TO ACHIEVE (125%)
+
+Achieve a minimized overhead so that a Nx speedup is achieved with N cores no matter the puzzle size and difficulty level.
+
+Achieve a reasonably fast run time compared to other algorithms. 
+
+MUST ACHIEVE: (75%)
+
+Speedup > 2x for all core counts
+
+Improvements on speedup with increasing core counts.
+
+DELIVERABLES:
+
+A short demo of the program that will show the input Sudoku puzzle and the solution found by the program in a neat manner.
+
+Graphs showing the performance improvement versus serial implementation on different puzzle sizes and difficulty levels.
 
 ## PLATFORM CHOICE
 
