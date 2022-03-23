@@ -21,23 +21,23 @@ Our program will be utilizing the muticores on the GHC machines. Since our goal 
 
 ## GOALS AND DELIVERABLES
 PLAN TO ACHIEVE (100%)
- Markup : * Capable of solving Sudoku with different sizes and different difficulty levels.
+ Markup : *Capable of solving Sudoku with different sizes and different difficulty levels.
 
- Markup : * Achieve close to Nx speedup with N cores given a large enough Sudoku puzzle.
+ Markup : *Achieve close to Nx speedup with N cores given a large enough Sudoku puzzle.
 
- Markup : * Display both the puzzle and solution in an easily readable format.
+ Markup : *Display both the puzzle and solution in an easily readable format.
 
 HOPE TO ACHIEVE (125%)
 
- Markup : * Achieve a minimized overhead so that a Nx speedup is achieved with N cores no matter the puzzle size and difficulty level.
+ Markup : *Achieve a minimized overhead so that a Nx speedup is achieved with N cores no matter the puzzle size and difficulty level.
 
- Markup : * Achieve a reasonably fast run time compared to other algorithms. 
+ Markup : *Achieve a reasonably fast run time compared to other algorithms. 
 
 MUST ACHIEVE: (75%)
 
- Markup : * Speedup > 2x for all core counts
+ Markup : *Speedup > 2x for all core counts
 
- Markup : * Improvements on speedup with increasing core counts.
+ Markup : *Improvements on speedup with increasing core counts.
 
 DELIVERABLES:
 
