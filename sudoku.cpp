@@ -6,13 +6,58 @@
 #include <omp.h>
 #include <sudoku.h>
 
-int main(int argc, const char *argv[]) {
-    using namespace std::chrono;
-    typedef std::chrono::high_resolution_clock Clock;
-    typedef std::chrono::duration<double> dsec;
+static int _argc;
+static const char **_argv;
 
-    auto init_start = Clock::now();
-    double init_time = 0;
+const char *get_option_string(const char *option_name, const char *default_value) {
+    for (int i = _argc - 2; i >= 0; i -= 2)
+        if (strcmp(_argv[i], option_name) == 0)
+            return _argv[i + 1];
+    return default_value;
+}
+
+int get_option_int(const char *option_name, int default_value) {
+    for (int i = _argc - 2; i >= 0; i -= 2)
+        if (strcmp(_argv[i], option_name) == 0)
+            return atoi(_argv[i + 1]);
+    return default_value;
+}
+
+float get_option_float(const char *option_name, float default_value) {
+    for (int i = _argc - 2; i >= 0; i -= 2)
+        if (strcmp(_argv[i], option_name) == 0)
+            return (float)atof(_argv[i + 1]);
+    return default_value;
+}
+
+static void show_help(const char *program_path) {
+    printf("Usage: %s OPTIONS\n", program_path);
+    printf("\n");
+    printf("OPTIONS:\n");
+    printf("\t-f <input_filename> (required)\n");
+    printf("\t-n <num_of_threads> (required)\n");
+    printf("\t-g <grid_size>\n");
+}
+
+void init_sudoku(FILE *input, int grid_size, int **sudoku) {
+    int tmp;
+    for(int i = 0; i < grid_size; i++) {
+        for(int j = 0; j < grid_size - 1; j++) {
+            fscanf(input, "%d ", &tmp);
+            sudoku[i][j] = tmp;
+        }
+        fscanf(input, "%d\n", &tmp);
+        sudoku[i][grid_size-1] = tmp;
+    }
+}
+
+int main(int argc, const char *argv[]) {
+    // using namespace std::chrono;
+    // typedef std::chrono::high_resolution_clock Clock;
+    // typedef std::chrono::duration<double> dsec;
+
+    // auto init_start = Clock::now();
+    // double init_time = 0;
 
     _argc = argc - 1;
     _argv = argv + 1;
@@ -33,7 +78,7 @@ int main(int argc, const char *argv[]) {
         return 1;
     }
 
-    printf("Sudoku Grid Size: %s * %s\n", grid_size, grid_size);
+    printf("Sudoku Grid Size: %d * %d\n", grid_size, grid_size);
     printf("Number of threads: %d\n", num_of_threads);
     printf("Input file: %s\n", input_filename);
 
@@ -44,19 +89,20 @@ int main(int argc, const char *argv[]) {
         return 1;
     }
 
-    int **sudoku = (int **)malloc(grid_size, sizeof(int *));
+    int **sudoku = (int **)malloc(grid_size * sizeof(int *));
     for (int i = 0; i < grid_size; i++) {
-        sudoku[i] = (int *)malloc(grid_size, sizeof(int))
+        sudoku[i] = (int *)malloc(grid_size * sizeof(int));
     }
 
-    init_sudoku();
+    init_sudoku(input, grid_size, sudoku);
 
     // compute time starts
-    calculate();
+    //calculate();
     // compute time ends
 
     // Write to output file
-    output_solution();
+    //output_solution();
 
     return 0;
 }
+
