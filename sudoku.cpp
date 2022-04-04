@@ -1,10 +1,11 @@
+#include "sudoku.h"
+
 #include <assert.h>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <omp.h>
-#include <sudoku.h>
 
 static int _argc;
 static const char **_argv;
@@ -51,8 +52,19 @@ void init_sudoku(FILE *input, int grid_size, int **sudoku) {
     }
 }
 
+void output_solution(int **sudoku, int grid_size) {
+    FILE *output_file = fopen("solution.txt", "w");
+    for (int i = 0; i < grid_size; i++) {
+        for (int j = 0; j < grid_size; j++) {
+            fprintf(output_file, "%d ", sudoku[i][j]);
+        }
+        fprintf(output_file, "\n");
+    }
+    fclose(output_file);
+}
+
 int main(int argc, const char *argv[]) {
-    // using namespace std::chrono;
+    using namespace std::chrono;
     // typedef std::chrono::high_resolution_clock Clock;
     // typedef std::chrono::duration<double> dsec;
 
@@ -101,7 +113,7 @@ int main(int argc, const char *argv[]) {
     // compute time ends
 
     // Write to output file
-    //output_solution();
+    output_solution(sudoku, grid_size);
 
     return 0;
 }
