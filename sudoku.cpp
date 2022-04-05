@@ -63,6 +63,17 @@ void output_solution(int **sudoku, int grid_size) {
     fclose(output_file);
 }
 
+void compute() {
+    /*
+    init all candidate(&num_blank, );
+    while (blank) {
+        horizontal update candidates;
+        vertical update;
+        block update;
+    }
+    */
+}
+
 int main(int argc, const char *argv[]) {
     using namespace std::chrono;
     // typedef std::chrono::high_resolution_clock Clock;
@@ -109,7 +120,7 @@ int main(int argc, const char *argv[]) {
     init_sudoku(input, grid_size, sudoku);
 
     // compute time starts
-    //calculate();
+    compute();
     // compute time ends
 
     // Write to output file
