@@ -141,7 +141,8 @@ bool vertical_update(cell_t **sudoku, int grid_size) {
 
         int num_blank = 0;
         int blank_index[16];
-        bool answer_status[16] = {true};
+        bool answer_status[16];
+        memset(answer_status, true, sizeof(answer_status));
         
         for (int j = 0; j < grid_size; j++) {
             if (sudoku[j][i].answer > 0) {
@@ -173,7 +174,8 @@ bool block_update(cell_t **sudoku, int grid_size) {
 
         int num_blank = 0;
         int blank_index[16];
-        bool answer_status[16] = {true};
+        bool answer_status[16];
+        memset(answer_status, true, sizeof(answer_status));
 
         int cell_x_start = (block_i % block_size) * block_size;
         int cell_y_start = (block_i / block_size) * block_size;
@@ -216,10 +218,10 @@ void compute(int grid_size, cell_t **sudoku, int *num_blank) {
     while (has_blank) {
         has_blank = horizontal_update(sudoku, grid_size);
         if (!has_blank) break;
-        // has_blank = vertical_update(sudoku, grid_size);
-        // if (!has_blank) break;
-        // has_blank = block_update(sudoku, grid_size);
-        // if (!has_blank) break;
+        has_blank = vertical_update(sudoku, grid_size);
+        if (!has_blank) break;
+        has_blank = block_update(sudoku, grid_size);
+        if (!has_blank) break;
     }
 }
 
