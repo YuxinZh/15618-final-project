@@ -63,6 +63,61 @@ void output_solution(int **sudoku, int grid_size) {
     fclose(output_file);
 }
 
+void update_cell(cell_t cell, int *found_answers, int num_of_found) {
+    for (int i = 0; i < num_of_found; i++) {
+        int index = found_answers[i] - 1;
+        cell.candidates[index] = false;
+    }
+
+    int tmp_answer = 0;
+    for (int i = 0; i < 16; i++) {
+        if (cell.candidates[i] && (tmp_answer == 0)) {
+            // meaning this is the first candidate in the list that is true
+            tmp_answer = i + 1;
+        } else if (cell.candidates[i] && (tmp_answer != 0)) {
+            // meaning there are at least two remaining candidates
+            tmp_answer = 0;
+            break;
+        }
+    }
+    if (tmp_answer > 0)
+        cell.answer = tmp_answer;
+}
+
+bool horizontal_update(cell_t **sudoku, int grid_size) {
+    bool has_blank = true;
+    int i;
+    // dynamic openMP assign
+    for (i = 0; i < grid_size; i++) { // for each horizontal line
+
+        int num_of_found = 0;
+        int found_answers[16];
+
+        int num_of_blank = 0;
+        int blank_index[16];
+        
+        for (int j = 0; j < grid_size; j++) {
+            if (sudoku[i][j].answer > 0) {
+                found_answers[num_of_found] = sudoku[i][j].answer;
+                num_of_found++;
+            } else {
+                blank_index[num_of_blank] = j;
+                num_blank++;
+            }
+        }
+
+        for (int k = 0; k < num_blank; k++) {
+            update_cell(sudoku[i][blank_index[k]], found_answers, num_of_found);
+        }
+
+        // can work with non-atomic instruction
+        if (num_of_blank == 0)
+            has_blank = false;
+    }
+
+    return has_blank;
+}
+
 void compute() {
     /*
     init all candidate(&num_blank, );

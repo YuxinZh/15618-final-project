@@ -20,4 +20,10 @@ void output_solution(int **sudoku, int grid_size);
 // compute main function
 void compute();
 
+// update candidates and check if answer of this cell is found
+void update_cell();
+
+// update all candidates
+void horizontal_update(cell_t **sudoku, int grid_size);
+
 #endif
