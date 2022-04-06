@@ -66,6 +66,8 @@ void output_solution(cell_t **sudoku, int grid_size) {
     for (int i = 0; i < grid_size; i++) {
         for (int j = 0; j < grid_size; j++) {
             fprintf(output_file, "%d ", sudoku[i][j].answer);
+            // for(int k = 0; k < 16; k++) fprintf(output_file, "%d ", sudoku[i][j].candidates[k]);
+            // fprintf(output_file, "\n");
         }
         fprintf(output_file, "\n");
     }
@@ -73,8 +75,9 @@ void output_solution(cell_t **sudoku, int grid_size) {
 }
 
 void update_cell(cell_t &cell, bool *answer_status, int grid_size) {
-    for (int i = 0; i < grid_size; i++) // might have bug for 9*9 ?
+    for (int i = 0; i < grid_size; i++) {// might have bug for 9*9 ?
         cell.candidates[i] = cell.candidates[i] && answer_status[i];
+    }
     
     int tmp_answer = 0;
     for (int i = 0; i < grid_size; i++) {
@@ -89,8 +92,11 @@ void update_cell(cell_t &cell, bool *answer_status, int grid_size) {
     }
     if (tmp_answer > 0){
         cell.answer = tmp_answer;
-        printf("fill: %d\n", tmp_answer);
+        printf("fill: %d\n", cell.answer);
+        // return tmp_answer;
     }
+
+    // return 0;
 }
 
 bool horizontal_update(cell_t **sudoku, int grid_size) {
@@ -101,8 +107,9 @@ bool horizontal_update(cell_t **sudoku, int grid_size) {
 
         int num_blank = 0;
         int blank_index[16];
-        bool answer_status[16] = {true};
-        
+        bool answer_status[16];
+        memset(answer_status, true, sizeof(answer_status));
+
         for (int j = 0; j < grid_size; j++) {
             if (sudoku[i][j].answer > 0) {
                 answer_status[sudoku[i][j].answer-1] = false;
@@ -113,6 +120,8 @@ bool horizontal_update(cell_t **sudoku, int grid_size) {
         }
 
         for (int k = 0; k < num_blank; k++) {
+            //int tmp = update_cell(sudoku[i][blank_index[k]], answer_status, grid_size);
+            //sudoku[i][blank_index[k]].answer = tmp;
             update_cell(sudoku[i][blank_index[k]], answer_status, grid_size);
         }
 
@@ -259,6 +268,7 @@ int main(int argc, const char *argv[]) {
     int num_blank = 0;
 
     init_sudoku(input, grid_size, sudoku, &num_blank);
+    // output_solution(sudoku, grid_size);
 
     // compute time starts
     compute(grid_size, sudoku, &num_blank);
