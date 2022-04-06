@@ -74,7 +74,7 @@ void output_solution(cell_t **sudoku, int grid_size) {
     fclose(output_file);
 }
 
-void update_cell(cell_t &cell, bool *answer_status, int grid_size) {
+void update_cell(cell_t &cell, bool *answer_status, int grid_size, bool &filled) {
     for (int i = 0; i < grid_size; i++) {// might have bug for 9*9 ?
         cell.candidates[i] = cell.candidates[i] && answer_status[i];
     }
@@ -92,12 +92,13 @@ void update_cell(cell_t &cell, bool *answer_status, int grid_size) {
     }
     if (tmp_answer > 0){
         cell.answer = tmp_answer;
+        filled = true;
     }
 
     // return 0;
 }
 
-bool horizontal_update(cell_t **sudoku, int grid_size) {
+bool horizontal_update(cell_t **sudoku, int grid_size, bool &filled) {
     bool has_blank = false;
     int i;
     // dynamic openMP assign
@@ -118,7 +119,7 @@ bool horizontal_update(cell_t **sudoku, int grid_size) {
         }
 
         for (int k = 0; k < num_blank; k++) {
-            update_cell(sudoku[i][blank_index[k]], answer_status, grid_size);
+            update_cell(sudoku[i][blank_index[k]], answer_status, grid_size, filled);
         }
 
         // can work with non-atomic instruction
@@ -129,7 +130,7 @@ bool horizontal_update(cell_t **sudoku, int grid_size) {
     return has_blank;
 }
 
-bool vertical_update(cell_t **sudoku, int grid_size) {
+bool vertical_update(cell_t **sudoku, int grid_size, bool &filled) {
     bool has_blank = false;
     int i;
     // dynamic openMP assign
@@ -150,7 +151,7 @@ bool vertical_update(cell_t **sudoku, int grid_size) {
         }
 
         for (int k = 0; k < num_blank; k++) {
-            update_cell(sudoku[blank_index[k]][i], answer_status, grid_size);
+            update_cell(sudoku[blank_index[k]][i], answer_status, grid_size, filled);
         }
 
         // can work with non-atomic instruction
@@ -161,7 +162,7 @@ bool vertical_update(cell_t **sudoku, int grid_size) {
     return has_blank;
 }
 
-bool block_update(cell_t **sudoku, int grid_size) {
+bool block_update(cell_t **sudoku, int grid_size, bool &filled) {
     bool has_blank = false;
     int block_size = (int)sqrt(grid_size);
     int block_i;
@@ -193,7 +194,7 @@ bool block_update(cell_t **sudoku, int grid_size) {
         for (int k = 0; k < num_blank; k++) {
             int abs_x = cell_x_start + (blank_index[k] / block_size);
             int abs_y = cell_y_start + (blank_index[k] % block_size);
-            update_cell(sudoku[abs_x][abs_y], answer_status, grid_size);
+            update_cell(sudoku[abs_x][abs_y], answer_status, grid_size, filled);
         }
 
         // can work with non-atomic instruction
@@ -211,25 +212,27 @@ void compute(int grid_size, cell_t **sudoku, int *num_blank) {
     }
 
     bool has_blank = true;
-    printf("has_blank, %d\n", has_blank);
-    while (has_blank) {
-        has_blank = horizontal_update(sudoku, grid_size);
+    bool filled;
+    printf("Number of blanks in problem: %d \n", has_blank);
+    do {
+        filled = false;
+        has_blank = horizontal_update(sudoku, grid_size, filled);
         if (!has_blank) {
-             printf("break by horizontal\n");
+            printf("break by horizontal\n");
             break;
         }
-        has_blank = vertical_update(sudoku, grid_size);
+        has_blank = vertical_update(sudoku, grid_size, filled);
         if (!has_blank) {
             printf("break by vertical\n");
             break;
         }
-        has_blank = block_update(sudoku, grid_size);
+        has_blank = block_update(sudoku, grid_size, filled);
         if (!has_blank) {
             printf("break by block\n");
             break;
         }
-    }
-    printf("has_blank, %d\n", has_blank);
+    } while (has_blank && filled);
+    printf("Left blanks: %d\n", has_blank);
 }
 
 int main(int argc, const char *argv[]) {
@@ -259,9 +262,9 @@ int main(int argc, const char *argv[]) {
         return 1;
     }
 
-    printf("Sudoku Grid Size: %d * %d\n", grid_size, grid_size);
+    printf("Sudoku Size: %d * %d\n", grid_size, grid_size);
     printf("Number of threads: %d\n", num_of_threads);
-    printf("Input file: %s\n", input_filename);
+    printf("Input file: %s\n\n", input_filename);
 
     FILE *input = fopen(input_filename, "r");
 
