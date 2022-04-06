@@ -39,14 +39,21 @@ void init_sudoku(FILE *input, int grid_size, cell_t **sudoku, int *num_blank) {
     for(int i = 0; i < grid_size; i++) {
         for(int j = 0; j < grid_size - 1; j++) {
             fscanf(input, "%d ", &tmp);
-            if(tmp == 0) (*num_blank)++;
+
+            if(tmp == 0) 
+                (*num_blank)++;
+
             sudoku[i][j].answer = tmp;
-            for(int k = 0; k < 16; k++) sudoku[i][j].candidates[k] = 0;
+            
+            sudoku[i][j].candidates = {true};
         }
         fscanf(input, "%d\n", &tmp);
-        if(tmp == 0) (*num_blank)++;
+
+        if(tmp == 0) 
+            (*num_blank)++;
+
         sudoku[i][grid_size-1].answer = tmp;
-        for(int k = 0; k < 16; k++) sudoku[i][grid_size-1].candidates[k] = 0;
+        sudoku[i][grid_size-1].candidates = {true};
     }
 }
 
@@ -61,14 +68,12 @@ void output_solution(cell_t **sudoku, int grid_size) {
     fclose(output_file);
 }
 
-void update_cell(cell_t cell, int *found_answers, int num_of_found) {
-    for (int i = 0; i < num_of_found; i++) {
-        int index = found_answers[i] - 1;
-        cell.candidates[index] = false;
-    }
-
+void update_cell(cell_t cell, bool *answer_status, int grid_size) {
+    for (int i = 0; i < grid_size; i++) // might have bug for 9*9
+        cell.candidates[i] = cell.candidates[i] && answer_status[i];
+    
     int tmp_answer = 0;
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < grid_size; i++) {
         if (cell.candidates[i] && (tmp_answer == 0)) {
             // meaning this is the first candidate in the list that is true
             tmp_answer = i + 1;
@@ -88,16 +93,13 @@ bool horizontal_update(cell_t **sudoku, int grid_size) {
     // dynamic openMP assign
     for (i = 0; i < grid_size; i++) { // for each horizontal line
 
-        int num_of_found = 0;
-        int found_answers[16];
-
-        int num_of_blank = 0;
+        int num_blank = 0;
         int blank_index[16];
+        bool answer_status[16] = {true};
         
         for (int j = 0; j < grid_size; j++) {
             if (sudoku[i][j].answer > 0) {
-                found_answers[num_of_found] = sudoku[i][j].answer;
-                num_of_found++;
+                answer_status[answer-1] = false;
             } else {
                 blank_index[num_of_blank] = j;
                 num_blank++;
@@ -105,7 +107,7 @@ bool horizontal_update(cell_t **sudoku, int grid_size) {
         }
 
         for (int k = 0; k < num_blank; k++) {
-            update_cell(sudoku[i][blank_index[k]], found_answers, num_of_found);
+            update_cell(sudoku[i][blank_index[k]], answer_status, grid_size);
         }
 
         // can work with non-atomic instruction
