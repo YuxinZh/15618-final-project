@@ -100,7 +100,7 @@ void update_cell(cell_t &cell, bool *answer_status, int grid_size) {
 }
 
 bool horizontal_update(cell_t **sudoku, int grid_size) {
-    bool has_blank = true;
+    bool has_blank = false;
     int i;
     // dynamic openMP assign
     for (i = 0; i < grid_size; i++) { // for each horizontal line
@@ -126,15 +126,15 @@ bool horizontal_update(cell_t **sudoku, int grid_size) {
         }
 
         // can work with non-atomic instruction
-        if (num_blank == 0)
-            has_blank = false;
+        if (num_blank != 0)
+            has_blank = true;
     }
 
     return has_blank;
 }
 
 bool vertical_update(cell_t **sudoku, int grid_size) {
-    bool has_blank = true;
+    bool has_blank = false;
     int i;
     // dynamic openMP assign
     for (i = 0; i < grid_size; i++) { // for each vertical line
@@ -158,15 +158,15 @@ bool vertical_update(cell_t **sudoku, int grid_size) {
         }
 
         // can work with non-atomic instruction
-        if (num_blank == 0)
-            has_blank = false;
+        if (num_blank != 0)
+            has_blank = true;
     }
 
     return has_blank;
 }
 
 bool block_update(cell_t **sudoku, int grid_size) {
-    bool has_blank = true;
+    bool has_blank = false;
     int block_size = (int)sqrt(grid_size);
     int block_i;
     // dynamic openMP assign
@@ -201,8 +201,8 @@ bool block_update(cell_t **sudoku, int grid_size) {
         }
 
         // can work with non-atomic instruction
-        if (num_blank == 0)
-            has_blank = false;
+        if (num_blank != 0)
+            has_blank = true;
     }
 
     return has_blank;
@@ -215,14 +215,25 @@ void compute(int grid_size, cell_t **sudoku, int *num_blank) {
     }
 
     bool has_blank = true;
+    printf("has_blank, %d\n", has_blank);
     while (has_blank) {
         has_blank = horizontal_update(sudoku, grid_size);
-        if (!has_blank) break;
+        if (!has_blank) {
+             printf("break by horizontal\n");
+            break;
+        }
         has_blank = vertical_update(sudoku, grid_size);
-        if (!has_blank) break;
+        if (!has_blank) {
+            printf("break by vertical\n");
+            break;
+        }
         has_blank = block_update(sudoku, grid_size);
-        if (!has_blank) break;
+        if (!has_blank) {
+            printf("break by block\n");
+            break;
+        }
     }
+    printf("has_blank, %d\n", has_blank);
 }
 
 int main(int argc, const char *argv[]) {
