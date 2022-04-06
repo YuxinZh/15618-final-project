@@ -72,8 +72,8 @@ void output_solution(cell_t **sudoku, int grid_size) {
     fclose(output_file);
 }
 
-void update_cell(cell_t cell, bool *answer_status, int grid_size) {
-    for (int i = 0; i < grid_size; i++) // might have bug for 9*9
+void update_cell(cell_t &cell, bool *answer_status, int grid_size) {
+    for (int i = 0; i < grid_size; i++) // might have bug for 9*9 ?
         cell.candidates[i] = cell.candidates[i] && answer_status[i];
     
     int tmp_answer = 0;
@@ -87,8 +87,10 @@ void update_cell(cell_t cell, bool *answer_status, int grid_size) {
             break;
         }
     }
-    if (tmp_answer > 0)
+    if (tmp_answer > 0){
         cell.answer = tmp_answer;
+        printf("fill: %d\n", tmp_answer);
+    }
 }
 
 bool horizontal_update(cell_t **sudoku, int grid_size) {
@@ -205,10 +207,10 @@ void compute(int grid_size, cell_t **sudoku, int *num_blank) {
     while (has_blank) {
         has_blank = horizontal_update(sudoku, grid_size);
         if (!has_blank) break;
-        has_blank = vertical_update(sudoku, grid_size);
-        if (!has_blank) break;
-        has_blank = block_update(sudoku, grid_size);
-        if (!has_blank) break;
+        // has_blank = vertical_update(sudoku, grid_size);
+        // if (!has_blank) break;
+        // has_blank = block_update(sudoku, grid_size);
+        // if (!has_blank) break;
     }
 }
 

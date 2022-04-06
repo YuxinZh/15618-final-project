@@ -30,7 +30,7 @@ void output_solution(int **sudoku, int grid_size);
 void compute(int grid_size, cell_t **sudoku, int *num_blank);
 
 // update candidates and check if answer of this cell is found
-void update_cell();
+void update_cell(cell_t &cell, bool *answer_status, int grid_size);
 
 // update cells in different ways
 bool horizontal_update(cell_t **sudoku, int grid_size);
