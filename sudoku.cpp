@@ -1,12 +1,5 @@
 #include "sudoku.h"
 
-#include <assert.h>
-#include <chrono>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <omp.h>
-
 static int _argc;
 static const char **_argv;
 
@@ -36,27 +29,32 @@ static void show_help(const char *program_path) {
     printf("\n");
     printf("OPTIONS:\n");
     printf("\t-f <input_filename> (required)\n");
-    printf("\t-n <num_of_threads> (required)\n");
-    printf("\t-g <grid_size>\n");
+    printf("\t-n <num_of_threads> (default is 1)\n");
+    printf("\t-g <grid_size> (default is 9)\n");
 }
 
-void init_sudoku(FILE *input, int grid_size, int **sudoku) {
+//0 represent blank cell when initialize
+void init_sudoku(FILE *input, int grid_size, cell_t **sudoku, int *num_blank) {
     int tmp;
     for(int i = 0; i < grid_size; i++) {
         for(int j = 0; j < grid_size - 1; j++) {
             fscanf(input, "%d ", &tmp);
-            sudoku[i][j] = tmp;
+            if(tmp == 0) (*num_blank)++;
+            sudoku[i][j].answer = tmp;
+            for(int k = 0; k < 16; k++) sudoku[i][j].candidates[k] = 0;
         }
         fscanf(input, "%d\n", &tmp);
-        sudoku[i][grid_size-1] = tmp;
+        if(tmp == 0) (*num_blank)++;
+        sudoku[i][grid_size-1].answer = tmp;
+        for(int k = 0; k < 16; k++) sudoku[i][grid_size-1].candidates[k] = 0;
     }
 }
 
-void output_solution(int **sudoku, int grid_size) {
+void output_solution(cell_t **sudoku, int grid_size) {
     FILE *output_file = fopen("solution.txt", "w");
     for (int i = 0; i < grid_size; i++) {
         for (int j = 0; j < grid_size; j++) {
-            fprintf(output_file, "%d ", sudoku[i][j]);
+            fprintf(output_file, "%d ", sudoku[i][j].answer);
         }
         fprintf(output_file, "\n");
     }
@@ -118,7 +116,7 @@ bool horizontal_update(cell_t **sudoku, int grid_size) {
     return has_blank;
 }
 
-void compute() {
+void compute(int grid_size, cell_t **sudoku, int *num_blank) {
     /*
     init all candidate(&num_blank, );
     while (blank) {
@@ -127,6 +125,9 @@ void compute() {
         block update;
     }
     */
+    while ((*num_blank) != 0) {
+        
+    }
 }
 
 int main(int argc, const char *argv[]) {
@@ -167,15 +168,16 @@ int main(int argc, const char *argv[]) {
         return 1;
     }
 
-    int **sudoku = (int **)malloc(grid_size * sizeof(int *));
+    cell_t **sudoku = (cell_t **)malloc(grid_size * sizeof(cell_t *));
     for (int i = 0; i < grid_size; i++) {
-        sudoku[i] = (int *)malloc(grid_size * sizeof(int));
+        sudoku[i] = (cell_t *)malloc(grid_size * sizeof(cell_t));
     }
+    int num_blank = 0;
 
-    init_sudoku(input, grid_size, sudoku);
+    init_sudoku(input, grid_size, sudoku, &num_blank);
 
     // compute time starts
-    compute();
+    compute(grid_size, sudoku, &num_blank);
     // compute time ends
 
     // Write to output file
