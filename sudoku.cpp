@@ -92,8 +92,6 @@ void update_cell(cell_t &cell, bool *answer_status, int grid_size) {
     }
     if (tmp_answer > 0){
         cell.answer = tmp_answer;
-        printf("fill: %d\n", cell.answer);
-        // return tmp_answer;
     }
 
     // return 0;
@@ -120,8 +118,6 @@ bool horizontal_update(cell_t **sudoku, int grid_size) {
         }
 
         for (int k = 0; k < num_blank; k++) {
-            //int tmp = update_cell(sudoku[i][blank_index[k]], answer_status, grid_size);
-            //sudoku[i][blank_index[k]].answer = tmp;
             update_cell(sudoku[i][blank_index[k]], answer_status, grid_size);
         }
 
@@ -177,8 +173,8 @@ bool block_update(cell_t **sudoku, int grid_size) {
         bool answer_status[16];
         memset(answer_status, true, sizeof(answer_status));
 
-        int cell_x_start = (block_i % block_size) * block_size;
-        int cell_y_start = (block_i / block_size) * block_size;
+        int cell_x_start = (block_i / block_size) * block_size;
+        int cell_y_start = (block_i % block_size) * block_size;
         int cell_num = 0;
         for (int cell_x = cell_x_start; cell_x < cell_x_start + block_size; cell_x++) {
             for (int cell_y = cell_y_start; cell_y < cell_y_start + block_size; cell_y++) {
@@ -195,8 +191,8 @@ bool block_update(cell_t **sudoku, int grid_size) {
         }
 
         for (int k = 0; k < num_blank; k++) {
-            int abs_x = cell_x_start + (blank_index[k] % block_size);
-            int abs_y = cell_y_start + (blank_index[k] / block_size);
+            int abs_x = cell_x_start + (blank_index[k] / block_size);
+            int abs_y = cell_y_start + (blank_index[k] % block_size);
             update_cell(sudoku[abs_x][abs_y], answer_status, grid_size);
         }
 
