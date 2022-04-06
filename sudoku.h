@@ -32,7 +32,9 @@ void compute(int grid_size, cell_t **sudoku, int *num_blank);
 // update candidates and check if answer of this cell is found
 void update_cell();
 
-// update all candidates
-void horizontal_update(cell_t **sudoku, int grid_size);
+// update cells in different ways
+bool horizontal_update(cell_t **sudoku, int grid_size);
+bool vertical_update(cell_t **sudoku, int grid_size);
+bool block_update(cell_t **sudoku, int grid_size);
 
 #endif

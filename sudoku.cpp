@@ -1,4 +1,5 @@
 #include "sudoku.h"
+#include <cmath>
 
 static int _argc;
 static const char **_argv;
@@ -45,7 +46,8 @@ void init_sudoku(FILE *input, int grid_size, cell_t **sudoku, int *num_blank) {
 
             sudoku[i][j].answer = tmp;
             
-            sudoku[i][j].candidates = {true};
+            // sudoku[i][j].candidates = {true};
+            memset(sudoku[i][j].candidates, true, sizeof(sudoku[i][j].candidates));
         }
         fscanf(input, "%d\n", &tmp);
 
@@ -53,7 +55,9 @@ void init_sudoku(FILE *input, int grid_size, cell_t **sudoku, int *num_blank) {
             (*num_blank)++;
 
         sudoku[i][grid_size-1].answer = tmp;
-        sudoku[i][grid_size-1].candidates = {true};
+        // sudoku[i][grid_size-1].candidates = {true};
+        memset(sudoku[i][grid_size-1].candidates, true, sizeof(sudoku[i][grid_size-1].candidates));
+
     }
 }
 
@@ -99,9 +103,9 @@ bool horizontal_update(cell_t **sudoku, int grid_size) {
         
         for (int j = 0; j < grid_size; j++) {
             if (sudoku[i][j].answer > 0) {
-                answer_status[answer-1] = false;
+                answer_status[sudoku[i][j].answer-1] = false;
             } else {
-                blank_index[num_of_blank] = j;
+                blank_index[num_blank] = j;
                 num_blank++;
             }
         }
@@ -111,7 +115,80 @@ bool horizontal_update(cell_t **sudoku, int grid_size) {
         }
 
         // can work with non-atomic instruction
-        if (num_of_blank == 0)
+        if (num_blank == 0)
+            has_blank = false;
+    }
+
+    return has_blank;
+}
+
+bool vertical_update(cell_t **sudoku, int grid_size) {
+    bool has_blank = true;
+    int i;
+    // dynamic openMP assign
+    for (i = 0; i < grid_size; i++) { // for each vertical line
+
+        int num_blank = 0;
+        int blank_index[16];
+        bool answer_status[16] = {true};
+        
+        for (int j = 0; j < grid_size; j++) {
+            if (sudoku[j][i].answer > 0) {
+                answer_status[sudoku[j][i].answer-1] = false;
+            } else {
+                blank_index[num_blank] = j;
+                num_blank++;
+            }
+        }
+
+        for (int k = 0; k < num_blank; k++) {
+            update_cell(sudoku[blank_index[k]][i], answer_status, grid_size);
+        }
+
+        // can work with non-atomic instruction
+        if (num_blank == 0)
+            has_blank = false;
+    }
+
+    return has_blank;
+}
+
+bool block_update(cell_t **sudoku, int grid_size) {
+    bool has_blank = true;
+    int block_size = (int)sqrt(grid_size);
+    int block_i;
+    // dynamic openMP assign
+    for (block_i = 0; block_i < grid_size; block_i++) { // for each block
+
+        int num_blank = 0;
+        int blank_index[16];
+        bool answer_status[16] = {true};
+
+        int cell_x_start = (block_i % block_size) * block_size;
+        int cell_y_start = (block_i / block_size) * block_size;
+        int cell_num = 0;
+        for (int cell_x = cell_x_start; cell_x < cell_x_start + block_size; cell_x++) {
+            for (int cell_y = cell_y_start; cell_y < cell_y_start + block_size; cell_y++) {
+
+                if (sudoku[cell_x][cell_y].answer > 0) {
+                    answer_status[sudoku[cell_x][cell_y].answer-1] = false;
+                } else {
+                    blank_index[num_blank] = cell_num;
+                    num_blank++;
+                }
+                cell_num++;
+            }
+
+        }
+
+        for (int k = 0; k < num_blank; k++) {
+            int abs_x = cell_x_start + (blank_index[k] % block_size);
+            int abs_y = cell_y_start + (blank_index[k] / block_size);
+            update_cell(sudoku[abs_x][abs_y], answer_status, grid_size);
+        }
+
+        // can work with non-atomic instruction
+        if (num_blank == 0)
             has_blank = false;
     }
 
@@ -119,16 +196,19 @@ bool horizontal_update(cell_t **sudoku, int grid_size) {
 }
 
 void compute(int grid_size, cell_t **sudoku, int *num_blank) {
-    /*
-    init all candidate(&num_blank, );
-    while (blank) {
-        horizontal update candidates;
-        vertical update;
-        block update;
+    if ((*num_blank) == 0) {
+        printf("Input has no blank to fill.\n");
+        return;
     }
-    */
-    while ((*num_blank) != 0) {
-        
+
+    bool has_blank = true;
+    while (has_blank) {
+        has_blank = horizontal_update(sudoku, grid_size);
+        if (!has_blank) break;
+        has_blank = vertical_update(sudoku, grid_size);
+        if (!has_blank) break;
+        has_blank = block_update(sudoku, grid_size);
+        if (!has_blank) break;
     }
 }
 
