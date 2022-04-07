@@ -237,11 +237,8 @@ void compute(int grid_size, cell_t **sudoku, int *num_blank) {
 
 int main(int argc, const char *argv[]) {
     using namespace std::chrono;
-    // typedef std::chrono::high_resolution_clock Clock;
-    // typedef std::chrono::duration<double> dsec;
-
-    // auto init_start = Clock::now();
-    // double init_time = 0;
+    typedef std::chrono::high_resolution_clock Clock;
+    typedef std::chrono::duration<double> dsec;
 
     _argc = argc - 1;
     _argv = argv + 1;
@@ -283,7 +280,11 @@ int main(int argc, const char *argv[]) {
     // output_solution(sudoku, grid_size);
 
     // compute time starts
+    auto compute_start = Clock::now();
+    double compute_time = 0;
     compute(grid_size, sudoku, &num_blank);
+    compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
+    printf("Computation Time: %lf.\n", compute_time);
     // compute time ends
 
     // Write to output file
