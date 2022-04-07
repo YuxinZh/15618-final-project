@@ -1,3 +1,5 @@
 sudoku
+sudoku_backtrack
 *.o
 solution.txt
+solution_backtrack.txt
