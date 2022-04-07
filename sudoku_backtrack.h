@@ -16,13 +16,13 @@ static void show_help(const char *program_path);
 
 
 //initialize sudoku base on input
-void init_sudoku(FILE *input, int grid_size, int **sudoku, int **rows, int **cols, int **boxes);
+void init_sudoku(FILE *input, int grid_size, int **sudoku, bool **rows, bool **cols, bool **boxes);
 
 //backtrack function to compute
-void backtrack(int i, int j, int grid_size, int **sudoku, int **rows, int **cols, int **boxes);
+void backtrack(int i, int j, int grid_size, int **sudoku, bool **rows, bool **cols, bool **boxes);
 
 //check if a number exists in row/col/box
-bool check_num(int grid_size, int num, int* row);
+bool check_num(int grid_size, int num, bool* row);
 
 // write to output file
 void output_solution(int **sudoku, int grid_size);

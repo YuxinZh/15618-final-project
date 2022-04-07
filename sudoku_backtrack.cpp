@@ -38,6 +38,7 @@ static void show_help(const char *program_path) {
 //0 represent blank cell when initialize
 void init_sudoku(FILE *input, int grid_size, int **sudoku, bool **rows, bool **cols, bool **boxes) {
     int tmp;
+    int sqrt_grid = int(sqrt(grid_size));
     for(int i = 0; i < grid_size; i++) {
         for(int j = 0; j < grid_size - 1; j++) {
             fscanf(input, "%d ", &tmp);
@@ -46,7 +47,7 @@ void init_sudoku(FILE *input, int grid_size, int **sudoku, bool **rows, bool **c
             if(tmp != 0) {
                 rows[i][tmp-1] = 1;
                 cols[j][tmp-1] = 1;
-                int box_id = i/3*3 + j/3;
+                int box_id = i/sqrt_grid*sqrt_grid + j/sqrt_grid;
                 boxes[box_id][tmp-1] = 1;
             }
         }
@@ -56,7 +57,7 @@ void init_sudoku(FILE *input, int grid_size, int **sudoku, bool **rows, bool **c
         if(tmp != 0) {
             rows[i][tmp-1] = 1;
             cols[grid_size-1][tmp-1] = 1;
-            int box_id = i/3*3 + (grid_size-1)/3;
+            int box_id = i/sqrt_grid*sqrt_grid + (grid_size-1)/sqrt_grid;
             boxes[box_id][tmp-1] = 1;
         }
     }
@@ -84,15 +85,17 @@ bool check_num(int num, bool* row) {
 }
 
 void backtrack(int x, int y, int grid_size, int **sudoku, bool **rows, bool **cols, bool **boxes) {
+    int sqrt_grid = int(sqrt(grid_size));
+
     //change this to support 16
-    if (x == 9) {
+    if (x == grid_size) {
         solved = true;
         return;
     }
 
     //change this to support 16
-    int update_x = x + (y+1)/9;
-    int update_y = (y+1) % 9;
+    int update_x = x + (y+1)/grid_size;
+    int update_y = (y+1) % grid_size;
 
     if (sudoku[x][y] != 0) {
         backtrack(update_x, update_y, grid_size, sudoku, rows, cols, boxes);
@@ -100,7 +103,7 @@ void backtrack(int x, int y, int grid_size, int **sudoku, bool **rows, bool **co
     else {
         //try from number 1 to grid_size(9 or 16)
         for(int i = 1; i < grid_size + 1; i++) {
-            int box_id = x/3*3 + y/3;
+            int box_id = x/sqrt_grid*sqrt_grid + y/sqrt_grid;
             if(check_num(i, rows[x])==false && check_num(i, cols[y])==false && check_num(i, boxes[box_id])==false){
                 rows[x][i-1] = 1;
                 cols[y][i-1] = 1;
