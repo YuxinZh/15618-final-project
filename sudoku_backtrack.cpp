@@ -36,7 +36,7 @@ static void show_help(const char *program_path) {
 }
 
 //0 represent blank cell when initialize
-void init_sudoku(FILE *input, int grid_size, int **sudoku, int **rows, int **cols, int**boxes) {
+void init_sudoku(FILE *input, int grid_size, int **sudoku, bool **rows, bool **cols, bool **boxes) {
     int tmp;
     for(int i = 0; i < grid_size; i++) {
         for(int j = 0; j < grid_size - 1; j++) {
@@ -76,14 +76,14 @@ void output_solution(int **sudoku, int grid_size) {
 }
 
 //check if a number exists in row/col/box
-bool check_num(int num, int* row) {
+bool check_num(int num, bool* row) {
     if(row[num - 1] == 1) {
         return true;
     }
     return false;
 }
 
-void backtrack(int x, int y, int grid_size, int **sudoku, int **rows, int **cols, int **boxes) {
+void backtrack(int x, int y, int grid_size, int **sudoku, bool **rows, bool **cols, bool **boxes) {
     //change this to support 16
     if (x == 9) {
         solved = true;
@@ -160,20 +160,19 @@ int main(int argc, const char *argv[]) {
         sudoku[i] = (int *)malloc(grid_size * sizeof(int));
     }
 
-    //change in to bool after finish
-    int **rows = (int **)malloc(grid_size * sizeof(int *));
+    bool **rows = (bool **)malloc(grid_size * sizeof(bool *));
     for (int i = 0; i < grid_size; i++) {
-        rows[i] = (int *)malloc(grid_size * sizeof(int));
+        rows[i] = (bool *)malloc(grid_size * sizeof(bool));
     }
 
-    int **cols = (int **)malloc(grid_size * sizeof(int *));
+    bool **cols = (bool **)malloc(grid_size * sizeof(bool *));
     for (int i = 0; i < grid_size; i++) {
-        cols[i] = (int *)malloc(grid_size * sizeof(int));
+        cols[i] = (bool *)malloc(grid_size * sizeof(bool));
     }
 
-    int **boxes = (int **)malloc(grid_size * sizeof(int *));
+    bool **boxes = (bool **)malloc(grid_size * sizeof(bool *));
     for (int i = 0; i < grid_size; i++) {
-        boxes[i] = (int *)malloc(grid_size * sizeof(int));
+        boxes[i] = (bool *)malloc(grid_size * sizeof(bool));
     }
 
     init_sudoku(input, grid_size, sudoku, rows, cols, boxes);
