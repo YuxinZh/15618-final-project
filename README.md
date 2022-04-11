@@ -52,9 +52,9 @@ We will be using OpenMP semantics to implement our parallelism algorithm. We hav
 | Date | Plan |
 | --------- | ----------- |
 | 3/21 - 3/23 | Finish project proposal |
-| 3/24 - 4/8 | Finish basic algorithm for 9x9 Sudoku |
-| 4/8 - 4/11 | Finish milestone report |
-| 4/11 - 4/15 | Finish algorithm for 16x16 Sudoku | 
-| 4/15 - 4/27  | Parallel implementation and testing | 
+| 3/24 - 4/8 | Finish basic single core algorithm |
+| 4/8 - 4/11 | Revisited algorithm and finish a different algorithm that uses backtracking|
+| 4/11 - 4/15 | Finish milestone report | 
+| 4/15 - 4/27  | Parallel implementation on both algorithm and compare | 
 | 4/27 - 4/29 | Finish final report |
 | 4/29 - 5/5 | Prepare for poster session |
