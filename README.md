@@ -52,9 +52,14 @@ We will be using OpenMP semantics to implement our parallelism algorithm. We hav
 | Date | Plan | Person |
 | --------- | ----------- | ----------- |
 | 3/21 - 3/23 | Finish project proposal | Alex, Yuxin |
-| 3/24 - 4/8 | Finish basic single core algorithm | Alex |
+| 3/24 - 4/8 | Finish basic single core "search" algorithm | Alex |
 | 4/8 - 4/11 | Revisited algorithm and finish a different algorithm that uses backtracking| Yuxin |
 | 4/11 - 4/15 | Finish milestone report | Alex, Yuxin |
 | 4/15 - 4/27  | Parallel implementation on both algorithm and compare | Alex, Yuxin |
 | 4/27 - 4/29 | Finish final report | Alex, Yuxin |
 | 4/29 - 5/5 | Prepare for poster session | Alex, Yuxin |
+
+## MILESTONE
+* We are now ahead of our previous schedule: we have already finished two different algorithms that work for both 9x9 grid and 16x16 grid, and we plan to parallelize those two algorithms in the coming weeks and compare the speedup of our two algorithms. We believe that we’ll be able to produce all our deliverables, including a short demo of the program that will show the input Sudoku puzzle and the solution found by the program in a neat manner, and graphs showing the performance improvement versus serial implementation on different puzzle sizes and difficulty levels of our two algorithms. Those will also be shown at the poster session. 
+* For now, we don’t have the preliminary speedup result, since we didn’t parallelize our algorithms yet. The backtrack algorithm performs better than the search algorithm, but the search algorithm is easier to parallelize, and the backtrack algorithm requires a huge amount of recursion, which makes it hard to parallelize.
+* Currently uncertin on how to combine our "search" algorithm with backtracking. Our "search" algorithm is expected to achieve good speedup under muti-core environment. However, it lacks the ability to do backtracking, which is a key component for the sudoku solver. The backtracking algorithm, on the other hand, is very difficult to add openMP codes.
