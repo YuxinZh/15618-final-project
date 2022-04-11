@@ -49,12 +49,12 @@ Graphs showing the performance improvement versus serial implementation on diffe
 We will be using OpenMP semantics to implement our parallelism algorithm. We have chosen this language because it is an address-sharing language and we can benefit from such sharing memory. 
 
 ## SCHEDULE
-| Date | Plan |
-| --------- | ----------- |
-| 3/21 - 3/23 | Finish project proposal |
-| 3/24 - 4/8 | Finish basic single core algorithm |
-| 4/8 - 4/11 | Revisited algorithm and finish a different algorithm that uses backtracking|
-| 4/11 - 4/15 | Finish milestone report | 
-| 4/15 - 4/27  | Parallel implementation on both algorithm and compare | 
-| 4/27 - 4/29 | Finish final report |
-| 4/29 - 5/5 | Prepare for poster session |
+| Date | Plan | Person |
+| --------- | ----------- | ----------- |
+| 3/21 - 3/23 | Finish project proposal | Alex, Yuxin |
+| 3/24 - 4/8 | Finish basic single core algorithm | Alex |
+| 4/8 - 4/11 | Revisited algorithm and finish a different algorithm that uses backtracking| Yuxin |
+| 4/11 - 4/15 | Finish milestone report | Alex, Yuxin |
+| 4/15 - 4/27  | Parallel implementation on both algorithm and compare | Alex, Yuxin |
+| 4/27 - 4/29 | Finish final report | Alex, Yuxin |
+| 4/29 - 5/5 | Prepare for poster session | Alex, Yuxin |
