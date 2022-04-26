@@ -233,6 +233,18 @@ void compute(int grid_size, cell_t **sudoku, int *num_blank) {
         }
     } while (has_blank && filled);
     printf("Left blanks: %d\n", has_blank);
+    /* Done first round of filling */
+
+    // num_possibility [16 * 16];
+    // fill this array;
+    // found total number of iterations;
+
+    // for (i to total_iterations)
+    //      convert i to fake_binary
+    //      fill sudoku with fake_binary
+    //      check(temp_sudoku);
+    //      if (success)
+    //          break;
 }
 
 int main(int argc, const char *argv[]) {
