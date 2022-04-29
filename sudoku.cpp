@@ -235,56 +235,70 @@ bool check_sudoku(cell_t **sudoku, int grid_size) {
     bool answer_status[16];
     
     //check columns
-    for (int i = 0; j < grid_size; j++) {
+    for (int i = 0; i < grid_size; i++) {
         memset(answer_status, false, sizeof(answer_status));
         for (int j = 0; j < grid_size; j++) {
             if(answer_status[sudoku[j][i].answer] == true) {
                 return false;
             } else {
-                answer_status[sudoku[j][i].answer] == true;
+                answer_status[sudoku[j][i].answer] = true;
             }
         }
     }
 
     //check rows
-    for (int i = 0; j < grid_size; j++) {
+    for (int i = 0; i < grid_size; i++) {
         memset(answer_status, false, sizeof(answer_status));
         for (int j = 0; j < grid_size; j++) {
             if(answer_status[sudoku[i][j].answer] == true) {
                 return false;
             } else {
-                answer_status[sudoku[i][j].answer] == true;
+                answer_status[sudoku[i][j].answer] = true;
             }
         }
     }
 
     //check blocks
     for (int block_i = 0; block_i < grid_size; block_i++) { // for each block
-
-        int num_blank = 0;
-        int blank_index[16];
-        bool answer_status[16];
-        memset(answer_status, true, sizeof(answer_status));
-
+        memset(answer_status, false, sizeof(answer_status));
+        int block_size = (int)sqrt(grid_size);
         int cell_x_start = (block_i / block_size) * block_size;
         int cell_y_start = (block_i % block_size) * block_size;
-        int cell_num = 0;
         for (int cell_x = cell_x_start; cell_x < cell_x_start + block_size; cell_x++) {
             for (int cell_y = cell_y_start; cell_y < cell_y_start + block_size; cell_y++) {
-
-                if (sudoku[cell_x][cell_y].answer > 0) {
-                    answer_status[sudoku[cell_x][cell_y].answer-1] = false;
+                if(answer_status[sudoku[cell_x][cell_y].answer] == true) {
+                    return false;
                 } else {
-                    blank_index[num_blank] = cell_num;
-                    num_blank++;
+                    answer_status[sudoku[cell_x][cell_y].answer] = true;
                 }
-                cell_num++;
             }
-
         }
+    }
 
+    return true;
 }
 
+int find_possibilities(int **num_possibility, cell_t **sudoku, int grid_size){
+    int iterations = 1;
+    for(int i = 0; i < grid_size; i++) {
+        for(int j = 0; j < grid_size; j++) {
+            if(sudoku[i][j].answer != 0) {
+                num_possibility[i][j] = 1; //store 1 when the number is fixed
+            }
+            else {
+                num_possibility[i][j] = 0;
+                for(int k = 0; k < grid_size; k++) {
+                    if(sudoku[i][j].candidates[k] == true) {
+                        num_possibility[i][j]++;
+                    }
+                }
+                iterations *= num_possibility[i][j];
+            }
+        }
+    }
+    return iterations;
+
+}
 
 void compute(int grid_size, cell_t **sudoku, int *num_blank) {
     if ((*num_blank) == 0) {
@@ -316,9 +330,15 @@ void compute(int grid_size, cell_t **sudoku, int *num_blank) {
     printf("Left blanks: %d\n", has_blank);
     /* Done first round of filling */
 
-    // num_possibility [16 * 16];
     // fill this array;
     // found total number of iterations;
+    int **num_possibility = (int **)malloc(grid_size * sizeof(int *));
+    for (int i = 0; i < grid_size; i++) {
+        num_possibility[i] = (int *)malloc(grid_size * sizeof(int));
+    }
+    int num_iterations;
+    num_iterations = find_possibilities(num_possibility, sudoku, grid_size);
+    printf("num_iterations: %d\n", num_iterations);
 
     // for (i to total_iterations)
     //      convert i to fake_binary

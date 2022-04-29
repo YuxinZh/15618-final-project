@@ -10,7 +10,7 @@
 
 typedef struct { 
     int answer; // 0 for no answer, 1 ~ 9 is answer
-    bool candidates[16];
+    bool candidates[16]; // true is possible candidate
 } cell_t;
 
 // program arguments helper functions
