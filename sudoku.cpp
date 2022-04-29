@@ -205,6 +205,32 @@ bool block_update(cell_t **sudoku, int grid_size, bool &filled) {
     return has_blank;
 }
 
+void fill_sudoku(cell_t **sudoku, int *fake_binary, int grid_size, int num_blank) {
+    int blank_index = 0;
+    for (int i = 0; i < grid_size; i++) {
+        for (int j = 0; j < grid_size; j++) {
+            if (sudoku[i][j].answer > 0)
+                continue;
+            
+            // found a blank cell
+            int find_place = fake_binary[blank_index];
+            int current_place = -1;
+            for (int candidate_i = 0; candidate_i < grid_size; candidate_i++) {
+                if (sudoku[i][j].candidates[candidate_i] == true )
+                    current_place++;
+
+                if (current_place == find_place) {
+                    sudoku[i][j].answer = candidate_i + 1;
+                    break;
+                }
+            }
+            blank_index++;
+            if (blank_index >= num_blank)
+                return;
+        }
+    }
+}
+
 bool check_sudoku(cell_t **sudoku, int grid_size) {
     bool answer_status[16];
     
@@ -231,7 +257,31 @@ bool check_sudoku(cell_t **sudoku, int grid_size) {
             }
         }
     }
-}
+
+    //check blocks
+    for (int block_i = 0; block_i < grid_size; block_i++) { // for each block
+
+        int num_blank = 0;
+        int blank_index[16];
+        bool answer_status[16];
+        memset(answer_status, true, sizeof(answer_status));
+
+        int cell_x_start = (block_i / block_size) * block_size;
+        int cell_y_start = (block_i % block_size) * block_size;
+        int cell_num = 0;
+        for (int cell_x = cell_x_start; cell_x < cell_x_start + block_size; cell_x++) {
+            for (int cell_y = cell_y_start; cell_y < cell_y_start + block_size; cell_y++) {
+
+                if (sudoku[cell_x][cell_y].answer > 0) {
+                    answer_status[sudoku[cell_x][cell_y].answer-1] = false;
+                } else {
+                    blank_index[num_blank] = cell_num;
+                    num_blank++;
+                }
+                cell_num++;
+            }
+
+        }
 
 }
 
