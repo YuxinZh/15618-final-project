@@ -205,6 +205,32 @@ bool block_update(cell_t **sudoku, int grid_size, bool &filled) {
     return has_blank;
 }
 
+void fill_sudoku(cell_t **sudoku, int *fake_binary, int grid_size, int num_blank) {
+    int blank_index = 0;
+    for (int i = 0; i < grid_size; i++) {
+        for (int j = 0; j < grid_size; j++) {
+            if (sudoku[i][j].answer > 0)
+                continue;
+            
+            // found a blank cell
+            int find_place = fake_binary[blank_index];
+            int current_place = -1;
+            for (int candidate_i = 0; candidate_i < grid_size; candidate_i++) {
+                if (sudoku[i][j].candidates[candidate_i] == true )
+                    current_place++;
+
+                if (current_place == find_place) {
+                    sudoku[i][j].answer = candidate_i + 1;
+                    break;
+                }
+            }
+            blank_index++;
+            if (blank_index >= num_blank)
+                return;
+        }
+    }
+}
+
 void compute(int grid_size, cell_t **sudoku, int *num_blank) {
     if ((*num_blank) == 0) {
         printf("Input has no blank to fill.\n");
