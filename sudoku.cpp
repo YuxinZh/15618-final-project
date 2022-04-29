@@ -205,6 +205,37 @@ bool block_update(cell_t **sudoku, int grid_size, bool &filled) {
     return has_blank;
 }
 
+bool check_sudoku(cell_t **sudoku, int grid_size) {
+    bool answer_status[16];
+    
+    //check columns
+    for (int i = 0; j < grid_size; j++) {
+        memset(answer_status, false, sizeof(answer_status));
+        for (int j = 0; j < grid_size; j++) {
+            if(answer_status[sudoku[j][i].answer] == true) {
+                return false;
+            } else {
+                answer_status[sudoku[j][i].answer] == true;
+            }
+        }
+    }
+
+    //check rows
+    for (int i = 0; j < grid_size; j++) {
+        memset(answer_status, false, sizeof(answer_status));
+        for (int j = 0; j < grid_size; j++) {
+            if(answer_status[sudoku[i][j].answer] == true) {
+                return false;
+            } else {
+                answer_status[sudoku[i][j].answer] == true;
+            }
+        }
+    }
+}
+
+}
+
+
 void compute(int grid_size, cell_t **sudoku, int *num_blank) {
     if ((*num_blank) == 0) {
         printf("Input has no blank to fill.\n");
@@ -242,7 +273,7 @@ void compute(int grid_size, cell_t **sudoku, int *num_blank) {
     // for (i to total_iterations)
     //      convert i to fake_binary
     //      fill sudoku with fake_binary
-    //      check(temp_sudoku);
+    //      check_sudoku(cell_t **sudoku, int grid_size)
     //      if (success)
     //          break;
 }
