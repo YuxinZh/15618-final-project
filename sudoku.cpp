@@ -300,6 +300,59 @@ int find_possibilities(int num_possibility[][16], cell_t sudoku[][16], int grid_
 
 }
 
+int find_next_possibility(int* x, int* y, int grid_size, int** num_possibility) {
+    // move to next cell when (x,y) != (0,0)
+    if((*x) != 0 || (*y) != 0) {
+        if(*y == (grid_size-1)){
+            *y = 0;
+            (*x)++;
+            if(*x == grid_size) return -1; //reach the end of num_possibility
+        }
+        else{
+            (*y)++;
+        }
+    }
+
+    while(num_possibility[*x][*y] == 1) {
+        if(*y == (grid_size-1)){
+            *y = 0;
+            (*x)++;
+            if(*x == grid_size) return -1; //reach the end of num_possibility
+        }
+        else{
+            (*y)++;
+        }
+    }
+    return num_possibility[*x][*y];
+}
+
+void find_fake_binary(int iteration_count, int* fake_binary, int grid_size, int** num_possibility){
+    int x = 0;
+    int y = 0;
+    int possibility = find_next_possibility(&x, &y, grid_size, num_possibility);
+    // printf("x=%d, y=%d, possibility=%d\n", x, y, possibility);
+    int i = 0;
+    int quotient = iteration_count;
+    int remainder;
+    do {
+        remainder = quotient % possibility;
+        quotient = quotient / possibility;
+        possibility = find_next_possibility(&x, &y, grid_size, num_possibility);
+        // printf("possibility: %d\n", num_possibility[x][y]);
+        // save the new digit to fake_binary
+        fake_binary[i] = remainder;
+        i++;
+    } while(quotient != 0);
+
+    // printf("fake_binary: ");
+    // for(int j = 0; j < i; j++) {
+    //     printf("%d", fake_binary[j]);
+    // }
+    // printf("\n");
+
+    return;    
+}
+
 void compute(int grid_size, cell_t sudoku[][16], int *num_blank, cell_t sudoku_answer[][16]) {
     if ((*num_blank) == 0) {
         printf("Input has no blank to fill.\n");
@@ -341,8 +394,11 @@ void compute(int grid_size, cell_t sudoku[][16], int *num_blank, cell_t sudoku_a
     num_iterations = find_possibilities(num_possibility, sudoku, grid_size);
     printf("num_iterations: %d\n", num_iterations);
 
+    int *fake_binary = (int *)malloc(grid_size * grid_size * sizeof(int));
+
     // for (i to total_iterations)
     //      convert i to fake_binary
+            find_fake_binary(12, fake_binary, grid_size, num_possibility);
     //      fill sudoku with fake_binary
     //      check_sudoku(cell_t **sudoku, int grid_size)
     //      if (success)
