@@ -35,7 +35,7 @@ static void show_help(const char *program_path) {
 }
 
 //0 represent blank cell when initialize
-void init_sudoku(FILE *input, int grid_size, cell_t **sudoku, int *num_blank) {
+void init_sudoku(FILE *input, int grid_size, cell_t sudoku[][16], int *num_blank) {
     int tmp;
     for(int i = 0; i < grid_size; i++) {
         for(int j = 0; j < grid_size - 1; j++) {
@@ -61,7 +61,7 @@ void init_sudoku(FILE *input, int grid_size, cell_t **sudoku, int *num_blank) {
     }
 }
 
-void output_solution(cell_t **sudoku, int grid_size) {
+void output_solution(cell_t sudoku[][16], int grid_size) {
     FILE *output_file = fopen("solution.txt", "w");
     for (int i = 0; i < grid_size; i++) {
         for (int j = 0; j < grid_size; j++) {
@@ -98,7 +98,7 @@ void update_cell(cell_t &cell, bool *answer_status, int grid_size, bool &filled)
     // return 0;
 }
 
-bool horizontal_update(cell_t **sudoku, int grid_size, bool &filled) {
+bool horizontal_update(cell_t sudoku[][16], int grid_size, bool &filled) {
     bool has_blank = false;
     int i;
     // dynamic openMP assign
@@ -130,7 +130,7 @@ bool horizontal_update(cell_t **sudoku, int grid_size, bool &filled) {
     return has_blank;
 }
 
-bool vertical_update(cell_t **sudoku, int grid_size, bool &filled) {
+bool vertical_update(cell_t sudoku[][16], int grid_size, bool &filled) {
     bool has_blank = false;
     int i;
     // dynamic openMP assign
@@ -162,7 +162,7 @@ bool vertical_update(cell_t **sudoku, int grid_size, bool &filled) {
     return has_blank;
 }
 
-bool block_update(cell_t **sudoku, int grid_size, bool &filled) {
+bool block_update(cell_t sudoku[][16], int grid_size, bool &filled) {
     bool has_blank = false;
     int block_size = (int)sqrt(grid_size);
     int block_i;
@@ -205,7 +205,7 @@ bool block_update(cell_t **sudoku, int grid_size, bool &filled) {
     return has_blank;
 }
 
-void fill_sudoku(cell_t **sudoku, int *fake_binary, int grid_size, int num_blank) {
+void fill_sudoku(cell_t sudoku[][16], char (&fake_binary)[16*16], int grid_size, int num_blank) {
     int blank_index = 0;
     for (int i = 0; i < grid_size; i++) {
         for (int j = 0; j < grid_size; j++) {
@@ -213,7 +213,7 @@ void fill_sudoku(cell_t **sudoku, int *fake_binary, int grid_size, int num_blank
                 continue;
             
             // found a blank cell
-            int find_place = fake_binary[blank_index];
+            int find_place = fake_binary[blank_index] - '0';
             int current_place = -1;
             for (int candidate_i = 0; candidate_i < grid_size; candidate_i++) {
                 if (sudoku[i][j].candidates[candidate_i] == true )
@@ -231,7 +231,7 @@ void fill_sudoku(cell_t **sudoku, int *fake_binary, int grid_size, int num_blank
     }
 }
 
-bool check_sudoku(cell_t **sudoku, int grid_size) {
+bool check_sudoku(cell_t sudoku[][16], int grid_size) {
     bool answer_status[16];
     
     //check columns
@@ -278,7 +278,7 @@ bool check_sudoku(cell_t **sudoku, int grid_size) {
     return true;
 }
 
-int find_possibilities(int **num_possibility, cell_t **sudoku, int grid_size){
+int find_possibilities(int num_possibility[][16], cell_t sudoku[][16], int grid_size){
     int iterations = 1;
     for(int i = 0; i < grid_size; i++) {
         for(int j = 0; j < grid_size; j++) {
@@ -300,7 +300,7 @@ int find_possibilities(int **num_possibility, cell_t **sudoku, int grid_size){
 
 }
 
-void compute(int grid_size, cell_t **sudoku, int *num_blank) {
+void compute(int grid_size, cell_t sudoku[][16], int *num_blank, cell_t sudoku_answer[][16]) {
     if ((*num_blank) == 0) {
         printf("Input has no blank to fill.\n");
         return;
@@ -332,10 +332,11 @@ void compute(int grid_size, cell_t **sudoku, int *num_blank) {
 
     // fill this array;
     // found total number of iterations;
-    int **num_possibility = (int **)malloc(grid_size * sizeof(int *));
-    for (int i = 0; i < grid_size; i++) {
-        num_possibility[i] = (int *)malloc(grid_size * sizeof(int));
-    }
+    // int **num_possibility = (int **)malloc(grid_size * sizeof(int *));
+    // for (int i = 0; i < grid_size; i++) {
+    //     num_possibility[i] = (int *)malloc(grid_size * sizeof(int));
+    // }
+    int num_possibility[16][16];
     int num_iterations;
     num_iterations = find_possibilities(num_possibility, sudoku, grid_size);
     printf("num_iterations: %d\n", num_iterations);
@@ -346,6 +347,30 @@ void compute(int grid_size, cell_t **sudoku, int *num_blank) {
     //      check_sudoku(cell_t **sudoku, int grid_size)
     //      if (success)
     //          break;
+
+    /* 
+    int i;
+    bool hit = false;
+    // #pragma omp parallel for default(shared) private(i) schedule(dynamic)
+    for (i = 0; i < num_iterations; i++) {
+        if (!hit) {
+            // TODO: also need new number of blank from the find_possibilities function
+            cell_t local_sudoku[16][16];
+            memcpy (local_sudoku, sudoku, 16*16*sizeof(cell_t));
+            char fake_binary[16*16];
+            to_fake_binary(i, fake_binary);
+            fill_sudoku(local_sudoku, fake_binary, grid_size, *num_blank);
+            if (check_sudoku(sudoku, grid_size)) {
+                // #pragma omp critical
+                {
+                    hit = true;
+                    memcpy (sudoku_answer, local_sudoku, 16*16*sizeof(cell_t));
+                }
+            }
+        }
+    }
+    */
+    memcpy (sudoku_answer, sudoku, 16*16*sizeof(cell_t));
 }
 
 int main(int argc, const char *argv[]) {
@@ -383,10 +408,12 @@ int main(int argc, const char *argv[]) {
         return 1;
     }
 
-    cell_t **sudoku = (cell_t **)malloc(grid_size * sizeof(cell_t *));
-    for (int i = 0; i < grid_size; i++) {
-        sudoku[i] = (cell_t *)malloc(grid_size * sizeof(cell_t));
-    }
+    // cell_t **sudoku = (cell_t **)malloc(grid_size * sizeof(cell_t *));
+    // for (int i = 0; i < grid_size; i++) {
+    //     sudoku[i] = (cell_t *)malloc(grid_size * sizeof(cell_t));
+    // }
+    cell_t sudoku[16][16];
+    cell_t sudoku_answer[16][16];
     int num_blank = 0;
 
     init_sudoku(input, grid_size, sudoku, &num_blank);
@@ -395,13 +422,13 @@ int main(int argc, const char *argv[]) {
     // compute time starts
     auto compute_start = Clock::now();
     double compute_time = 0;
-    compute(grid_size, sudoku, &num_blank);
+    compute(grid_size, sudoku, &num_blank, sudoku_answer);
     compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
     printf("Computation Time: %lf.\n", compute_time);
     // compute time ends
 
     // Write to output file
-    output_solution(sudoku, grid_size);
+    output_solution(sudoku_answer, grid_size);
 
     return 0;
 }
