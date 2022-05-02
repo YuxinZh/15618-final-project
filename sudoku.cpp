@@ -1,5 +1,13 @@
 #include "sudoku.h"
+#include <stdint.h>
+#include <inttypes.h>
 #include <cmath>
+
+#include <boost/multiprecision/cpp_int.hpp>
+
+using namespace boost::multiprecision;
+
+typedef unsigned long long wide;
 
 static int _argc;
 static const char **_argv;
@@ -102,6 +110,7 @@ bool horizontal_update(cell_t sudoku[][16], int grid_size, bool &filled) {
     bool has_blank = false;
     int i;
     // dynamic openMP assign
+    #pragma omp parallel for default(shared) private(i) schedule(dynamic)
     for (i = 0; i < grid_size; i++) { // for each horizontal line
 
         int num_blank = 0;
@@ -133,7 +142,7 @@ bool horizontal_update(cell_t sudoku[][16], int grid_size, bool &filled) {
 bool vertical_update(cell_t sudoku[][16], int grid_size, bool &filled) {
     bool has_blank = false;
     int i;
-    // dynamic openMP assign
+    #pragma omp parallel for default(shared) private(i) schedule(dynamic)
     for (i = 0; i < grid_size; i++) { // for each vertical line
 
         int num_blank = 0;
@@ -166,7 +175,7 @@ bool block_update(cell_t sudoku[][16], int grid_size, bool &filled) {
     bool has_blank = false;
     int block_size = (int)sqrt(grid_size);
     int block_i;
-    // dynamic openMP assign
+    #pragma omp parallel for default(shared) private(block_i) schedule(dynamic)
     for (block_i = 0; block_i < grid_size; block_i++) { // for each block
 
         int num_blank = 0;
@@ -288,8 +297,18 @@ bool check_sudoku(cell_t sudoku[][16], int grid_size) {
     return true;
 }
 
-unsigned long long find_possibilities(int num_possibility[][16], cell_t sudoku[][16], int grid_size, int *num_blank){
-    unsigned long long iterations = 1;
+// void print_1024(wide x) {
+//     if (x < 0) {
+//         putchar('-');
+//         x = -x;
+//     }
+//     if (x > 9) 
+//         print_1024(x / 10);
+//     putchar(x % 10 + '0');
+// }
+
+wide find_possibilities(int num_possibility[][16], cell_t sudoku[][16], int grid_size, int *num_blank){
+    wide iterations = 1;
     for(int i = 0; i < grid_size; i++) {
         for(int j = 0; j < grid_size; j++) {
             if(sudoku[i][j].answer != 0) {
@@ -303,9 +322,11 @@ unsigned long long find_possibilities(int num_possibility[][16], cell_t sudoku[]
                         num_possibility[i][j]++;
                     }
                 }
-                printf("iterations: %llu\n", iterations);
-                printf("next num_possibility: %d\n", num_possibility[i][j]);
-                iterations *= (unsigned long long)num_possibility[i][j];
+                // printf("iterations: ");
+                // print_1024(iterations);
+                // printf("\n");
+                // printf("next num_possibility: %d\n", num_possibility[i][j]);
+                iterations *= (wide)num_possibility[i][j];
             }
         }
     }
@@ -379,17 +400,17 @@ char int_to_hex (int i) {
     }
 }
 
-void find_fake_binary(unsigned long long iteration_count, char (&fake_binary)[16*16], int grid_size, int num_possibility[][16]){
+void find_fake_binary(wide iteration_count, char (&fake_binary)[16*16], int grid_size, int num_possibility[][16]){
     int x = 0;
     int y = 0;
     int possibility = find_next_possibility(&x, &y, grid_size, num_possibility);
     // printf("x=%d, y=%d, possibility=%d\n", x, y, possibility);
     int i = 0;
-    unsigned long long quotient = iteration_count;
-    unsigned long long remainder;
+    wide quotient = iteration_count;
+    wide remainder;
     do {
-        remainder = quotient % (unsigned long long)possibility;
-        quotient = quotient / (unsigned long long)possibility;
+        remainder = quotient % (wide)possibility;
+        quotient = quotient / (wide)possibility;
         possibility = find_next_possibility(&x, &y, grid_size, num_possibility);
         // printf("possibility: %d\n", num_possibility[x][y]);
         // save the new digit to fake_binary
@@ -438,12 +459,12 @@ void compute(int grid_size, cell_t sudoku[][16], int *num_blank, cell_t sudoku_a
     /* Done first round of filling */
 
     int num_possibility[16][16];
-    unsigned long long num_iterations = find_possibilities(num_possibility, sudoku, grid_size, num_blank);
-    printf("num_iterations: %llu\n", num_iterations);
+    wide num_iterations = find_possibilities(num_possibility, sudoku, grid_size, num_blank);
+    // printf("num_iterations: %" PRI{d}{128} "\n", num_iterations);
     
-    unsigned long long i;
+    wide i;
     bool hit = false;
-    // #pragma omp parallel for default(shared) private(i) schedule(dynamic)
+    #pragma omp parallel for default(shared) private(i) schedule(dynamic)
     for (i = 0; i < num_iterations; i++) {
         if (!hit) {
             cell_t local_sudoku[16][16];
@@ -452,7 +473,7 @@ void compute(int grid_size, cell_t sudoku[][16], int *num_blank, cell_t sudoku_a
             find_fake_binary(i, fake_binary, grid_size, num_possibility);
             fill_sudoku(local_sudoku, fake_binary, grid_size, *num_blank);
             if (check_sudoku(local_sudoku, grid_size)) {
-                // #pragma omp critical
+                #pragma omp critical
                 {
                     hit = true;
                     memcpy (sudoku_answer, local_sudoku, 16*16*sizeof(cell_t));
@@ -504,6 +525,9 @@ int main(int argc, const char *argv[]) {
 
     init_sudoku(input, grid_size, sudoku, &num_blank);
     // output_solution(sudoku, grid_size);
+
+    /* Set the number of threads for the parallel region */
+    omp_set_num_threads(num_of_threads);
 
     // compute time starts
     auto compute_start = Clock::now();
