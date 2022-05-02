@@ -205,6 +205,16 @@ bool block_update(cell_t sudoku[][16], int grid_size, bool &filled) {
     return has_blank;
 }
 
+int hex_to_int (char c) {
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    if (c >= 'a' && c <= 'f')
+        return 10 + c - 'a';
+    
+    // printf("error in hex_to_int\n");
+    return 0;
+}
+
 void fill_sudoku(cell_t sudoku[][16], char (&fake_binary)[16*16], int grid_size, int num_blank) {
     int blank_index = 0;
     for (int i = 0; i < grid_size; i++) {
@@ -213,7 +223,7 @@ void fill_sudoku(cell_t sudoku[][16], char (&fake_binary)[16*16], int grid_size,
                 continue;
             
             // found a blank cell
-            int find_place = fake_binary[blank_index] - '0';
+            int find_place = hex_to_int(fake_binary[blank_index]);
             int current_place = -1;
             for (int candidate_i = 0; candidate_i < grid_size; candidate_i++) {
                 if (sudoku[i][j].candidates[candidate_i] == true )
@@ -278,8 +288,8 @@ bool check_sudoku(cell_t sudoku[][16], int grid_size) {
     return true;
 }
 
-int find_possibilities(int num_possibility[][16], cell_t sudoku[][16], int grid_size, int *num_blank){
-    int iterations = 1;
+unsigned long long find_possibilities(int num_possibility[][16], cell_t sudoku[][16], int grid_size, int *num_blank){
+    unsigned long long iterations = 1;
     for(int i = 0; i < grid_size; i++) {
         for(int j = 0; j < grid_size; j++) {
             if(sudoku[i][j].answer != 0) {
@@ -293,7 +303,9 @@ int find_possibilities(int num_possibility[][16], cell_t sudoku[][16], int grid_
                         num_possibility[i][j]++;
                     }
                 }
-                iterations *= num_possibility[i][j];
+                printf("iterations: %llu\n", iterations);
+                printf("next num_possibility: %d\n", num_possibility[i][j]);
+                iterations *= (unsigned long long)num_possibility[i][j];
             }
         }
     }
@@ -367,21 +379,22 @@ char int_to_hex (int i) {
     }
 }
 
-void find_fake_binary(int iteration_count, char (&fake_binary)[16*16], int grid_size, int num_possibility[][16]){
+void find_fake_binary(unsigned long long iteration_count, char (&fake_binary)[16*16], int grid_size, int num_possibility[][16]){
     int x = 0;
     int y = 0;
     int possibility = find_next_possibility(&x, &y, grid_size, num_possibility);
     // printf("x=%d, y=%d, possibility=%d\n", x, y, possibility);
     int i = 0;
-    int quotient = iteration_count;
-    int remainder;
+    unsigned long long quotient = iteration_count;
+    unsigned long long remainder;
     do {
-        remainder = quotient % possibility;
-        quotient = quotient / possibility;
+        remainder = quotient % (unsigned long long)possibility;
+        quotient = quotient / (unsigned long long)possibility;
         possibility = find_next_possibility(&x, &y, grid_size, num_possibility);
         // printf("possibility: %d\n", num_possibility[x][y]);
         // save the new digit to fake_binary
-        fake_binary[i] = int_to_hex(remainder);
+        fake_binary[i] = int_to_hex((int)remainder);
+        // printf("debug: %c ", fake_binary[i]);
         i++;
     } while(quotient != 0);
 
@@ -425,16 +438,14 @@ void compute(int grid_size, cell_t sudoku[][16], int *num_blank, cell_t sudoku_a
     /* Done first round of filling */
 
     int num_possibility[16][16];
-    int num_iterations;
-    num_iterations = find_possibilities(num_possibility, sudoku, grid_size, num_blank);
-    printf("num_iterations: %d\n", num_iterations);
+    unsigned long long num_iterations = find_possibilities(num_possibility, sudoku, grid_size, num_blank);
+    printf("num_iterations: %llu\n", num_iterations);
     
-    int i;
+    unsigned long long i;
     bool hit = false;
     // #pragma omp parallel for default(shared) private(i) schedule(dynamic)
     for (i = 0; i < num_iterations; i++) {
         if (!hit) {
-            // TODO: also need new number of blank from the find_possibilities function
             cell_t local_sudoku[16][16];
             memcpy (local_sudoku, sudoku, 16*16*sizeof(cell_t));
             char fake_binary[16*16];
