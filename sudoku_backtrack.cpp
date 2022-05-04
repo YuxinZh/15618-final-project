@@ -102,6 +102,7 @@ void backtrack(int x, int y, int grid_size, int **sudoku, bool **rows, bool **co
     }
     else {
         //try from number 1 to grid_size(9 or 16)
+        #pragma omp taskloop firstprivate(sudoku)
         for(int i = 1; i < grid_size + 1; i++) {
             int box_id = x/sqrt_grid*sqrt_grid + y/sqrt_grid;
             if(check_num(i, rows[x])==false && check_num(i, cols[y])==false && check_num(i, boxes[box_id])==false){
@@ -179,12 +180,13 @@ int main(int argc, const char *argv[]) {
     }
 
     init_sudoku(input, grid_size, sudoku, rows, cols, boxes);
-    // output_solution(sudoku, grid_size);
+    output_solution(sudoku, grid_size);
 
     // compute time starts
     auto compute_start = Clock::now();
     double compute_time = 0;
     solved = false;
+    #pragma omp parallel
     backtrack(0, 0, grid_size, sudoku, rows, cols, boxes);
     compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
     printf("Computation Time: %lf.\n", compute_time);
