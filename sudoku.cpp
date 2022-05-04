@@ -6,8 +6,9 @@
 #include <boost/multiprecision/cpp_int.hpp>
 
 using namespace boost::multiprecision;
+using namespace std;
 
-typedef unsigned long long wide;
+typedef int1024_t wide;
 
 static int _argc;
 static const char **_argv;
@@ -297,16 +298,6 @@ bool check_sudoku(cell_t sudoku[][16], int grid_size) {
     return true;
 }
 
-// void print_1024(wide x) {
-//     if (x < 0) {
-//         putchar('-');
-//         x = -x;
-//     }
-//     if (x > 9) 
-//         print_1024(x / 10);
-//     putchar(x % 10 + '0');
-// }
-
 wide find_possibilities(int num_possibility[][16], cell_t sudoku[][16], int grid_size, int *num_blank){
     wide iterations = 1;
     for(int i = 0; i < grid_size; i++) {
@@ -322,11 +313,9 @@ wide find_possibilities(int num_possibility[][16], cell_t sudoku[][16], int grid
                         num_possibility[i][j]++;
                     }
                 }
-                // printf("iterations: ");
-                // print_1024(iterations);
-                // printf("\n");
-                // printf("next num_possibility: %d\n", num_possibility[i][j]);
+
                 iterations *= (wide)num_possibility[i][j];
+                cout << "iterations: " << iterations << "\n";
             }
         }
     }
@@ -404,7 +393,6 @@ void find_fake_binary(wide iteration_count, char (&fake_binary)[16*16], int grid
     int x = 0;
     int y = 0;
     int possibility = find_next_possibility(&x, &y, grid_size, num_possibility);
-    // printf("x=%d, y=%d, possibility=%d\n", x, y, possibility);
     int i = 0;
     wide quotient = iteration_count;
     wide remainder;
@@ -412,23 +400,14 @@ void find_fake_binary(wide iteration_count, char (&fake_binary)[16*16], int grid
         remainder = quotient % (wide)possibility;
         quotient = quotient / (wide)possibility;
         possibility = find_next_possibility(&x, &y, grid_size, num_possibility);
-        // printf("possibility: %d\n", num_possibility[x][y]);
-        // save the new digit to fake_binary
         fake_binary[i] = int_to_hex((int)remainder);
-        // printf("debug: %c ", fake_binary[i]);
         i++;
     } while(quotient != 0);
-
-    // printf("fake_binary: ");
-    // for(int j = 0; j < i; j++) {
-    //     printf("%d", fake_binary[j]);
-    // }
-    // printf("\n");
 
     return;    
 }
 
-void compute(int grid_size, cell_t sudoku[][16], int *num_blank, cell_t sudoku_answer[][16]) {
+void compute(int grid_size, cell_t sudoku[][16], int *num_blank, cell_t sudoku_answer[][16], unsigned int num_of_threads) {
     if ((*num_blank) == 0) {
         printf("Input has no blank to fill.\n");
         return;
@@ -442,46 +421,63 @@ void compute(int grid_size, cell_t sudoku[][16], int *num_blank, cell_t sudoku_a
         has_blank = horizontal_update(sudoku, grid_size, filled);
         if (!has_blank) {
             printf("break by horizontal\n");
-            break;
+            memcpy (sudoku_answer, sudoku, 16*16*sizeof(cell_t));
+            return;
         }
         has_blank = vertical_update(sudoku, grid_size, filled);
         if (!has_blank) {
             printf("break by vertical\n");
-            break;
+            memcpy (sudoku_answer, sudoku, 16*16*sizeof(cell_t));
+            return;
         }
         has_blank = block_update(sudoku, grid_size, filled);
         if (!has_blank) {
             printf("break by block\n");
-            break;
+            memcpy (sudoku_answer, sudoku, 16*16*sizeof(cell_t));
+            return;
         }
     } while (has_blank && filled);
-    printf("Left blanks: %d\n", has_blank);
+    printf("Has blanks after first round: %d\n", has_blank);
     /* Done first round of filling */
 
     int num_possibility[16][16];
     wide num_iterations = find_possibilities(num_possibility, sudoku, grid_size, num_blank);
-    // printf("num_iterations: %" PRI{d}{128} "\n", num_iterations);
+    wide range = num_iterations / num_of_threads + 1;
     
-    wide i;
+    unsigned int n;
     bool hit = false;
-    #pragma omp parallel for default(shared) private(i) schedule(dynamic)
-    for (i = 0; i < num_iterations; i++) {
+    #pragma omp parallel for default(shared) private(n) schedule(dynamic)
+    for (n = 0; n < num_of_threads; n++) {
         if (!hit) {
+
+            wide i;
+            wide start = n * range;
+            wide end = start + range;
+            
+            if (end > num_iterations)
+                end = num_iterations;
+
             cell_t local_sudoku[16][16];
-            memcpy (local_sudoku, sudoku, 16*16*sizeof(cell_t));
             char fake_binary[16*16];
-            find_fake_binary(i, fake_binary, grid_size, num_possibility);
-            fill_sudoku(local_sudoku, fake_binary, grid_size, *num_blank);
-            if (check_sudoku(local_sudoku, grid_size)) {
-                #pragma omp critical
-                {
-                    hit = true;
-                    memcpy (sudoku_answer, local_sudoku, 16*16*sizeof(cell_t));
+
+            for (i = start; i < end; i++) {
+                if (hit) 
+                    break;
+
+                memcpy (local_sudoku, sudoku, 16*16*sizeof(cell_t));
+                find_fake_binary(i, fake_binary, grid_size, num_possibility);
+                fill_sudoku(local_sudoku, fake_binary, grid_size, *num_blank);
+                if (check_sudoku(local_sudoku, grid_size)) {
+                    #pragma omp critical
+                    {
+                        hit = true;
+                        memcpy (sudoku_answer, local_sudoku, 16*16*sizeof(cell_t));
+                    }
                 }
+                
             }
         }
     }
-    // memcpy (sudoku_answer, sudoku, 16*16*sizeof(cell_t));
 }
 
 int main(int argc, const char *argv[]) {
@@ -532,7 +528,7 @@ int main(int argc, const char *argv[]) {
     // compute time starts
     auto compute_start = Clock::now();
     double compute_time = 0;
-    compute(grid_size, sudoku, &num_blank, sudoku_answer);
+    compute(grid_size, sudoku, &num_blank, sudoku_answer, num_of_threads);
     compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
     printf("Computation Time: %lf.\n", compute_time);
     // compute time ends
