@@ -36,7 +36,7 @@ static void show_help(const char *program_path) {
 }
 
 //0 represent blank cell when initialize
-void init_sudoku(FILE *input, int grid_size, int **sudoku, bool **rows, bool **cols, bool **boxes) {
+void init_sudoku(FILE *input, int grid_size, int sudoku[16][16], bool rows[16][16], bool cols[16][16], bool boxes[16][16]) {
     int tmp;
     int sqrt_grid = int(sqrt(grid_size));
     for(int i = 0; i < grid_size; i++) {
@@ -63,7 +63,20 @@ void init_sudoku(FILE *input, int grid_size, int **sudoku, bool **rows, bool **c
     }
 }
 
-void output_solution(int **sudoku, int grid_size) {
+void output_solution(int sudoku[16][16], int grid_size) {
+    FILE *output_file = fopen("solution_backtrack.txt", "w");
+    for (int i = 0; i < grid_size; i++) {
+        for (int j = 0; j < grid_size; j++) {
+            //fprintf(output_file, "%d ", sudoku[i][j]);
+            printf("%d ", sudoku[i][j]);
+        }
+        //fprintf(output_file, "\n");
+        printf("\n");
+    }
+    fclose(output_file);
+}
+
+void output_solution1(bool sudoku[16][16], int grid_size) {
     FILE *output_file = fopen("solution_backtrack.txt", "w");
     for (int i = 0; i < grid_size; i++) {
         for (int j = 0; j < grid_size; j++) {
@@ -77,48 +90,54 @@ void output_solution(int **sudoku, int grid_size) {
 }
 
 //check if a number exists in row/col/box
-bool check_num(int num, bool* row) {
+int check_num(int num, bool row[16]) {
     if(row[num - 1] == 1) {
         return true;
     }
     return false;
 }
 
-void backtrack(int x, int y, int grid_size, int **sudoku, bool **rows, bool **cols, bool **boxes) {
+void backtrack(int x, int y, int grid_size, int sudoku[16][16], bool rows[16][16], bool cols[16][16], bool boxes[16][16]) {
     int sqrt_grid = int(sqrt(grid_size));
 
-    //change this to support 16
     if (x == grid_size) {
         solved = true;
         return;
     }
 
-    //change this to support 16
     int update_x = x + (y+1)/grid_size;
     int update_y = (y+1) % grid_size;
 
-    if (sudoku[x][y] != 0) {
-        backtrack(update_x, update_y, grid_size, sudoku, rows, cols, boxes);
+    // if (sudoku[x][y] != 0) {
+    //     backtrack(update_x, update_y, grid_size, sudoku, rows, cols, boxes);
+    // }
+    while(sudoku[x][y] != 0) {
+        x = update_x;
+        y = update_y;
+        if (x == grid_size) {
+            solved = true;
+            return;
+        }
+        update_x = x + (y+1)/grid_size;
+        update_y = (y+1) % grid_size;
     }
-    else {
         //try from number 1 to grid_size(9 or 16)
-        #pragma omp taskloop firstprivate(sudoku)
-        for(int i = 1; i < grid_size + 1; i++) {
-            int box_id = x/sqrt_grid*sqrt_grid + y/sqrt_grid;
-            if(check_num(i, rows[x])==false && check_num(i, cols[y])==false && check_num(i, boxes[box_id])==false){
-                rows[x][i-1] = 1;
-                cols[y][i-1] = 1;
-                boxes[box_id][i-1] = 1;
-                sudoku[x][y] = i; 
+//    #pragma omp taskloop firstprivate(sudoku, rows, cols, boxes) 
+    for(int i = 1; i < grid_size + 1; i++) {
+        int box_id = x/sqrt_grid*sqrt_grid + y/sqrt_grid;
+        if(check_num(i, rows[x])==false && check_num(i, cols[y])==false && check_num(i, boxes[box_id])==false){
+            rows[x][i-1] = 1;
+            cols[y][i-1] = 1;
+            boxes[box_id][i-1] = 1;
+            sudoku[x][y] = i; 
 
-                backtrack(update_x, update_y, grid_size, sudoku, rows, cols, boxes);
+            backtrack(update_x, update_y, grid_size, sudoku, rows, cols, boxes);
 
-                if (solved == false) {
-                    rows[x][i-1] = 0;
-                    cols[y][i-1] = 0;
-                    boxes[box_id][i-1] = 0;
-                    sudoku[x][y] = 0; 
-                }
+            if (solved == false) {
+                rows[x][i-1] = 0;
+                cols[y][i-1] = 0;
+                boxes[box_id][i-1] = 0;
+                sudoku[x][y] = 0; 
             }
         }
     }
@@ -159,42 +178,51 @@ int main(int argc, const char *argv[]) {
         return 1;
     }
 
-    int **sudoku = (int **)malloc(grid_size * sizeof(int *));
-    for (int i = 0; i < grid_size; i++) {
-        sudoku[i] = (int *)malloc(grid_size * sizeof(int));
-    }
+    // int **sudoku = (int **)malloc(grid_size * sizeof(int *));
+    // for (int i = 0; i < grid_size; i++) {
+    //     sudoku[i] = (int *)malloc(grid_size * sizeof(int));
+    // }
+    bool rows[16][16] = {0};
+    bool cols[16][16] = {0};
+    bool boxes[16][16] = {0};
+    int sudoku[16][16] = {0};
 
-    bool **rows = (bool **)malloc(grid_size * sizeof(bool *));
-    for (int i = 0; i < grid_size; i++) {
-        rows[i] = (bool *)malloc(grid_size * sizeof(bool));
-    }
 
-    bool **cols = (bool **)malloc(grid_size * sizeof(bool *));
-    for (int i = 0; i < grid_size; i++) {
-        cols[i] = (bool *)malloc(grid_size * sizeof(bool));
-    }
+    // int **rows = (int **)malloc(grid_size * sizeof(int *));
+    // for (int i = 0; i < grid_size; i++) {
+    //     rows[i] = (int *)malloc(grid_size * sizeof(int));
+    // }
 
-    bool **boxes = (bool **)malloc(grid_size * sizeof(bool *));
-    for (int i = 0; i < grid_size; i++) {
-        boxes[i] = (bool *)malloc(grid_size * sizeof(bool));
-    }
+    // int **cols = (int **)malloc(grid_size * sizeof(int *));
+    // for (int i = 0; i < grid_size; i++) {
+    //     cols[i] = (int *)malloc(grid_size * sizeof(int));
+    // }
+
+    // int **boxes = (int **)malloc(grid_size * sizeof(int *));
+    // for (int i = 0; i < grid_size; i++) {
+    //     boxes[i] = (int *)malloc(grid_size * sizeof(int));
+    // }
 
     init_sudoku(input, grid_size, sudoku, rows, cols, boxes);
     output_solution(sudoku, grid_size);
+    output_solution1(rows, grid_size);
+    output_solution1(cols, grid_size);
+    output_solution1(boxes, grid_size);
 
     // compute time starts
     auto compute_start = Clock::now();
     double compute_time = 0;
     solved = false;
-    #pragma omp parallel
+
+    //#pragma omp parallel
     backtrack(0, 0, grid_size, sudoku, rows, cols, boxes);
     compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
     printf("Computation Time: %lf.\n", compute_time);
     // compute time ends
-
+    
     // Write to output file
     output_solution(sudoku, grid_size);
+    printf("%d\n", solved);
 
     return 0;
 }
-
