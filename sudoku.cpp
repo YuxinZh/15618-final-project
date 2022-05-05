@@ -3,10 +3,6 @@
 #include <inttypes.h>
 #include <cmath>
 
-// #include <boost/multiprecision/cpp_int.hpp>
-
-// using namespace boost::multiprecision;
-
 typedef unsigned long long wide;
 
 const int prefills = 8;
@@ -44,6 +40,7 @@ static void show_help(const char *program_path) {
     printf("\t-g <grid_size> (default is 9)\n");
 }
 
+// Initialize sudoku with input file
 //0 represent blank cell when initialize
 void init_sudoku(FILE *input, int grid_size, cell_t sudoku[][16], int *num_blank) {
     int tmp;
@@ -56,7 +53,6 @@ void init_sudoku(FILE *input, int grid_size, cell_t sudoku[][16], int *num_blank
 
             sudoku[i][j].answer = tmp;
             
-            // sudoku[i][j].candidates = {true};
             memset(sudoku[i][j].candidates, true, sizeof(sudoku[i][j].candidates));
         }
         fscanf(input, "%d\n", &tmp);
@@ -65,40 +61,25 @@ void init_sudoku(FILE *input, int grid_size, cell_t sudoku[][16], int *num_blank
             (*num_blank)++;
 
         sudoku[i][grid_size-1].answer = tmp;
-        // sudoku[i][grid_size-1].candidates = {true};
         memset(sudoku[i][grid_size-1].candidates, true, sizeof(sudoku[i][grid_size-1].candidates));
 
     }
 }
 
-void output_solution(cell_t sudoku[][16], int grid_size) {
-    FILE *output_file = fopen("solution.txt", "w");
-    for (int i = 0; i < grid_size; i++) {
-        for (int j = 0; j < grid_size; j++) {
-            fprintf(output_file, "%d ", sudoku[i][j].answer);
-            // for(int k = 0; k < 16; k++) fprintf(output_file, "%d ", sudoku[i][j].candidates[k]);
-            // fprintf(output_file, "\n");
-        }
-        fprintf(output_file, "\n");
-    }
-    fclose(output_file);
-}
-
+// output solution sudoku
 void output_solution_backtrack(int sudoku[][16], int grid_size) {
     FILE *output_file = fopen("solution.txt", "w");
     for (int i = 0; i < grid_size; i++) {
         for (int j = 0; j < grid_size; j++) {
             fprintf(output_file, "%d ", sudoku[i][j]);
-            // printf("%d ", sudoku[i][j]);
         }
-        fprintf(output_file, "\n");
-        // printf("\n");
-    }
+        fprintf(output_file, "\n");    }
     fclose(output_file);
 }
 
+// update cells with answer_status
 void update_cell(cell_t &cell, bool *answer_status, int grid_size, bool &filled) {
-    for (int i = 0; i < grid_size; i++) {// might have bug for 9*9 ?
+    for (int i = 0; i < grid_size; i++) {
         cell.candidates[i] = cell.candidates[i] && answer_status[i];
     }
     
@@ -117,14 +98,13 @@ void update_cell(cell_t &cell, bool *answer_status, int grid_size, bool &filled)
         cell.answer = tmp_answer;
         filled = true;
     }
-
-    // return 0;
 }
 
+// look at cells horizontally and update them
 bool horizontal_update(cell_t sudoku[][16], int grid_size, bool &filled) {
     bool has_blank = false;
     int i;
-    // dynamic openMP assign
+
     #pragma omp parallel for default(shared) private(i) schedule(dynamic)
     for (i = 0; i < grid_size; i++) { // for each horizontal line
 
@@ -154,6 +134,7 @@ bool horizontal_update(cell_t sudoku[][16], int grid_size, bool &filled) {
     return has_blank;
 }
 
+// look at cells vertically and update them
 bool vertical_update(cell_t sudoku[][16], int grid_size, bool &filled) {
     bool has_blank = false;
     int i;
@@ -178,7 +159,6 @@ bool vertical_update(cell_t sudoku[][16], int grid_size, bool &filled) {
             update_cell(sudoku[blank_index[k]][i], answer_status, grid_size, filled);
         }
 
-        // can work with non-atomic instruction
         if (num_blank != 0)
             has_blank = true;
     }
@@ -186,6 +166,7 @@ bool vertical_update(cell_t sudoku[][16], int grid_size, bool &filled) {
     return has_blank;
 }
 
+// look at cells in a block and update them
 bool block_update(cell_t sudoku[][16], int grid_size, bool &filled) {
     bool has_blank = false;
     int block_size = (int)sqrt(grid_size);
@@ -229,6 +210,7 @@ bool block_update(cell_t sudoku[][16], int grid_size, bool &filled) {
     return has_blank;
 }
 
+// from hex character to int
 int hex_to_int (char c) {
     if (c >= '0' && c <= '9')
         return c - '0';
@@ -239,6 +221,7 @@ int hex_to_int (char c) {
     return 0;
 }
 
+// fill sudoku with a fake_binary char array
 void fill_sudoku(cell_t sudoku[][16], char (&fake_binary)[16*16], int grid_size, int num_blank) {
     int blank_index = 0;
     for (int i = 0; i < grid_size; i++) {
@@ -265,6 +248,7 @@ void fill_sudoku(cell_t sudoku[][16], char (&fake_binary)[16*16], int grid_size,
     }
 }
 
+// check sudoku too see if there is any violations
 bool check_sudoku(cell_t sudoku[][16], int grid_size) {
     bool answer_status[16];
     
@@ -312,6 +296,7 @@ bool check_sudoku(cell_t sudoku[][16], int grid_size) {
     return true;
 }
 
+// check sudoku too see if there is any violations
 bool check_sudoku(int sudoku[][16], int grid_size) {
     bool answer_status[16];
     
@@ -367,6 +352,7 @@ bool check_sudoku(int sudoku[][16], int grid_size) {
     return true;
 }
 
+// find the first few blanks and return the total number of combinations to fill
 wide find_possibilities(int num_possibility[][16], cell_t sudoku[][16], int grid_size, int num_blank){
     wide iterations = 1;
     int count = 0;
@@ -387,7 +373,6 @@ wide find_possibilities(int num_possibility[][16], cell_t sudoku[][16], int grid
                 iterations *= (wide)num_possibility[i][j];
                 if (count == num_blank)
                     return iterations;
-                // cout << "iterations: " << iterations << "\n";
             }
         }
     }
@@ -395,6 +380,7 @@ wide find_possibilities(int num_possibility[][16], cell_t sudoku[][16], int grid
 
 }
 
+// find the next few blanks and return the total number of combinations to fill
 int find_next_possibility(int* x, int* y, int grid_size, int num_possibility[][16]) {
     // move to next cell when (x,y) != (0,0)
     if((*x) != 0 || (*y) != 0) {
@@ -421,6 +407,7 @@ int find_next_possibility(int* x, int* y, int grid_size, int num_possibility[][1
     return num_possibility[*x][*y];
 }
 
+// convert int to hex character 
 char int_to_hex (int i) {
     switch (i) {
         case 0:
@@ -461,6 +448,7 @@ char int_to_hex (int i) {
     }
 }
 
+// given a number, convert it to an array which can be used to fill sudoku
 void find_fake_binary(wide iteration_count, char (&fake_binary)[16*16], int grid_size, int num_possibility[][16]){
     int x = 0;
     int y = 0;
@@ -479,6 +467,7 @@ void find_fake_binary(wide iteration_count, char (&fake_binary)[16*16], int grid
     return;    
 }
 
+// check if the number exits in row
 bool check_num(int num, bool* row) {
     if(row[num - 1] == 1) {
         return true;
@@ -486,6 +475,7 @@ bool check_num(int num, bool* row) {
     return false;
 }
 
+// backtrack function to fill sudoku in a serialy manner
 void backtrack(int x, int y, int grid_size, int sudoku[][16], bool rows[][16], bool cols[][16], bool boxes[][16], bool *solved) {
     int sqrt_grid = int(sqrt(grid_size));
 
@@ -524,6 +514,7 @@ void backtrack(int x, int y, int grid_size, int sudoku[][16], bool rows[][16], b
     }
 }
 
+// init sudoku for the use of backtracking
 void init_sudoku_backtrack(int grid_size, int sudoku[][16], bool rows[][16], bool cols[][16], bool boxes[][16]) {
     int tmp;
     int sqrt_grid = int(sqrt(grid_size));
@@ -541,6 +532,7 @@ void init_sudoku_backtrack(int grid_size, int sudoku[][16], bool rows[][16], boo
     }
 }
 
+// a backtrack wrapper function
 bool do_backtrack(int grid_size, int sudoku[][16]) {
 
     bool rows[16][16] = {0};
@@ -548,8 +540,6 @@ bool do_backtrack(int grid_size, int sudoku[][16]) {
     bool boxes[16][16] = {0};
 
     init_sudoku_backtrack(grid_size, sudoku, rows, cols, boxes);
-    // printf("sudoku: \n");
-    // print_sudoku(grid_size, sudoku);
 
     bool solved = false;
     
@@ -558,6 +548,7 @@ bool do_backtrack(int grid_size, int sudoku[][16]) {
     return solved;
 }
 
+// covert cell arrays to int arrays
 void cells_to_ints(int grid_size, cell_t sudoku[][16], int sudoku_int[][16]) {
     for (int i = 0; i < grid_size; i++) {
         for (int j = 0; j < grid_size; j++) {
@@ -568,6 +559,7 @@ void cells_to_ints(int grid_size, cell_t sudoku[][16], int sudoku_int[][16]) {
     }
 }
 
+// print sudoku
 void print_sudoku (int grid_size, int sudoku[][16]) {
     for (int i = 0; i < grid_size; i++) {
         for (int j = 0; j < grid_size; j++) {
@@ -580,6 +572,7 @@ void print_sudoku (int grid_size, int sudoku[][16]) {
 
 }
 
+// main compute function to solve sudoku
 void compute(int grid_size, cell_t sudoku[][16], int *num_blank, cell_t sudoku_answer[][16], unsigned int num_of_threads, int sudoku_backtrack_answer[][16]) {
     if ((*num_blank) == 0) {
         printf("Input has no blank to fill.\n");
@@ -688,7 +681,6 @@ int main(int argc, const char *argv[]) {
     int num_blank = 0;
 
     init_sudoku(input, grid_size, sudoku, &num_blank);
-    // output_solution(sudoku, grid_size);
 
     /* Set the number of threads for the parallel region */
     omp_set_num_threads(num_of_threads);

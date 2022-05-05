@@ -19,13 +19,6 @@ int get_option_int(const char *option_name, int default_value);
 float get_option_float(const char *option_name, float default_value);
 static void show_help(const char *program_path);
 
-
-//initialize sudoku base on input
-// void init_sudoku(FILE *input, int grid_size, int **sudoku);
-
-// write to output file
-// void output_solution(int sudoku[][16], int grid_size);
-
 // compute main function
 void compute(int grid_size, cell_t **sudoku, int *num_blank);
 
