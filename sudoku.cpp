@@ -85,7 +85,7 @@ void output_solution(cell_t sudoku[][16], int grid_size) {
 }
 
 void output_solution_backtrack(int sudoku[][16], int grid_size) {
-    FILE *output_file = fopen("solution_backtrack.txt", "w");
+    FILE *output_file = fopen("solution.txt", "w");
     for (int i = 0; i < grid_size; i++) {
         for (int j = 0; j < grid_size; j++) {
             fprintf(output_file, "%d ", sudoku[i][j]);

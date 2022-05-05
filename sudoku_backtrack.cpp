@@ -3,6 +3,7 @@
 static int _argc;
 static const char **_argv;
 // int final_sudoku[16][16] = {0};
+bool solved;
 
 const char *get_option_string(const char *option_name, const char *default_value) {
     for (int i = _argc - 2; i >= 0; i -= 2)
@@ -100,8 +101,8 @@ bool backtrack2(int grid_size, int sudoku[16][16], bool rows[16][16], bool cols[
     int y = tmp.second;
 
     if(x == -1) {
-        output_solution(sudoku, grid_size);
-        exit(true);
+        #pragma omp critical
+        solved = true;
         return true;
     }
 
@@ -115,8 +116,8 @@ bool backtrack2(int grid_size, int sudoku[16][16], bool rows[16][16], bool cols[
             sudoku[x][y] = i; 
 
             if (backtrack2(grid_size, sudoku, rows, cols, boxes)) {
-                output_solution(sudoku, grid_size);
-                exit(true);
+                #pragma omp critical
+                solved = true;
                 return true;
             }
 
@@ -126,6 +127,8 @@ bool backtrack2(int grid_size, int sudoku[16][16], bool rows[16][16], bool cols[
             sudoku[x][y] = 0; 
         }
     }
+
+    #pragma omp taskwait
     return false;
 }
 
@@ -137,15 +140,15 @@ bool backtrack(int grid_size, int sudoku[16][16], bool rows[16][16], bool cols[1
     int y = tmp.second;
 
     if(x == -1) {
-        output_solution(sudoku, grid_size);
-        exit(true);
+        #pragma omp critical
+        solved = true;
         return true;
     }
 
     //try from number 1 to grid_size(9 or 16)
    #pragma omp taskloop private(grid_size, sudoku, rows, cols, boxes) 
     for(int i = 1; i < grid_size + 1; i++) 
-    {
+    {   
         int box_id = x/sqrt_grid*sqrt_grid + y/sqrt_grid;
         if(check_num(i, rows[x])==false && check_num(i, cols[y])==false && check_num(i, boxes[box_id])==false){
             rows[x][i-1] = 1;
@@ -154,8 +157,8 @@ bool backtrack(int grid_size, int sudoku[16][16], bool rows[16][16], bool cols[1
             sudoku[x][y] = i; 
 
             if(backtrack2(grid_size, sudoku, rows, cols, boxes)) {
-                output_solution(sudoku, grid_size);
-                exit(true);
+                #pragma omp critical
+                solved = true;
                 return true;
             }
 
@@ -165,6 +168,8 @@ bool backtrack(int grid_size, int sudoku[16][16], bool rows[16][16], bool cols[1
             sudoku[x][y] = 0; 
         }
     }
+    
+    #pragma omp taskwait
     return false;
 }
 
@@ -213,6 +218,7 @@ int main(int argc, const char *argv[]) {
     // compute time starts
     auto compute_start = Clock::now();
     double compute_time = 0;
+    solved = false;
 
     #pragma omp parallel
     backtrack(grid_size, sudoku, rows, cols, boxes);
@@ -223,7 +229,7 @@ int main(int argc, const char *argv[]) {
     // compute time ends
     
     // Write to output file
-    // output_solution(final_sudoku, grid_size);
+    output_solution(sudoku, grid_size);
 
     return 0;
 }
