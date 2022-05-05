@@ -220,6 +220,7 @@ int main(int argc, const char *argv[]) {
     double compute_time = 0;
     solved = false;
 
+    omp_set_num_threads(num_of_threads);
     #pragma omp parallel
     backtrack(grid_size, sudoku, rows, cols, boxes);
 
