@@ -66,8 +66,10 @@ We will be using OpenMP semantics to implement our parallelism algorithm. We hav
 
 ## FINAL REPORT
 [link to .pdf report](./15618-final-project.pdf)
+
 [link to .docx report](./15618-final-project.docs)
 
 ## RECORDING
 [link to recording](https://cmu.zoom.us/rec/share/9RdSnN5QBf_g1z3UIka4sO1JFR72RKpdkySJodlux_IozvoPKNF23YrPFYPo2ov_.MFfv82y7wpBVppY6)
+
 Passcode: +!^C+v=0
