@@ -7,6 +7,11 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <array>
+#include <cmath>
 
 // program arguments helper functions
 const char *get_option_string(const char *option_name, const char *default_value);
