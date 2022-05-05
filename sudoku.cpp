@@ -9,7 +9,7 @@
 
 typedef unsigned long long wide;
 
-const int prefills = 5;
+const int prefills = 8;
 
 static int _argc;
 static const char **_argv;
@@ -586,31 +586,31 @@ void compute(int grid_size, cell_t sudoku[][16], int *num_blank, cell_t sudoku_a
         return;
     }
 
-    // bool has_blank = true;
-    // bool filled;
-    // printf("Number of blanks in problem: %d \n", has_blank);
-    // do {
-    //     filled = false;
-    //     has_blank = horizontal_update(sudoku, grid_size, filled);
-    //     if (!has_blank) {
-    //         printf("break by horizontal\n");
-    //         memcpy (sudoku_answer, sudoku, 16*16*sizeof(cell_t));
-    //         return;
-    //     }
-    //     has_blank = vertical_update(sudoku, grid_size, filled);
-    //     if (!has_blank) {
-    //         printf("break by vertical\n");
-    //         memcpy (sudoku_answer, sudoku, 16*16*sizeof(cell_t));
-    //         return;
-    //     }
-    //     has_blank = block_update(sudoku, grid_size, filled);
-    //     if (!has_blank) {
-    //         printf("break by block\n");
-    //         memcpy (sudoku_answer, sudoku, 16*16*sizeof(cell_t));
-    //         return;
-    //     }
-    // } while (has_blank && filled);
-    // printf("Has blanks after first round: %d\n", has_blank);
+    bool has_blank = true;
+    bool filled;
+    printf("Number of blanks in problem: %d \n", has_blank);
+    do {
+        filled = false;
+        has_blank = horizontal_update(sudoku, grid_size, filled);
+        if (!has_blank) {
+            printf("break by horizontal\n");
+            memcpy (sudoku_answer, sudoku, 16*16*sizeof(cell_t));
+            return;
+        }
+        has_blank = vertical_update(sudoku, grid_size, filled);
+        if (!has_blank) {
+            printf("break by vertical\n");
+            memcpy (sudoku_answer, sudoku, 16*16*sizeof(cell_t));
+            return;
+        }
+        has_blank = block_update(sudoku, grid_size, filled);
+        if (!has_blank) {
+            printf("break by block\n");
+            memcpy (sudoku_answer, sudoku, 16*16*sizeof(cell_t));
+            return;
+        }
+    } while (has_blank && filled);
+    printf("Has blanks after first round: %d\n", has_blank);
     /* Done first round of filling */
 
     int num_possibility[16][16];
